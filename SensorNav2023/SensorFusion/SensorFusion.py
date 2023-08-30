@@ -27,16 +27,28 @@ class Vector:
 # Placeholder values, currently unknown what should be within these
 threshaccel = Vector(0.0, 0.0, 0.0)
 threshgyro = Vector(0.0, 0.0, 0.0)
+thresh_mag = Vector(MAG_THRESHOLD, MAG_THRESHOLD, MAG_THRESHOLD)
 
-def threshold_mag(data, last_data):
-    if data.x < -100 or data.x > 100:
-        return "data bad"
+def threshold_mag(data:Vector, last_data:Vector):
+    mag_final:Vector = Vector(last_data.x, last_data.y, last_data.z)
 
-    if last_data != START_VALUE:
-        if abs(data - last_data) > 5:
-            return "data bad"
-        
-    return "data good"
+    if data.x < thresh_mag.x and data.x > -thresh_mag.x:
+        if abs(data.x - last_data.x) < MAG_DELTA_THRESHOLD:
+            mag_final.x = data.x
+        else: print("magnetometer x value exceeds delta threshold")
+    else: print("magnetometer x value exceeds threshold")
+    if data.y < thresh_mag.y and data.y > -thresh_mag.y:
+        if abs(data.y - last_data.y) < MAG_DELTA_THRESHOLD:
+            mag_final.y = data.y
+        else: print("magnetometer y value exceeds delta threshold")
+    else: print("magnetometer y value exceeds threshold")
+    if data.z < thresh_mag.z and data.z > -thresh_mag.z:
+        if abs(data.z - last_data.z) < MAG_DELTA_THRESHOLD:
+            mag_final.z = data.z
+        else: print("magnetometer z value exceeds delta threshold")
+    else: print("magnetometer z value exceeds threshold")
+
+    return mag_final
 
 # Compare the acceleromter and gyroscope values to their thresholds and sets their values to the previous accelerometer and gyroscope vectors
 def IMUthreshold(accelerometer, gyroscope, accel, gyro):
@@ -64,26 +76,29 @@ if __name__ == "__main__":
     # i2c_mag = board.I2C()
     # sensor_mag = adafruit_mmc56x3.MMC5603(i2c_mag)
 
-    accelerometer = Vector(sensor_imu.acceleration)
-    gyroscope = Vector(sensor_imu.gyro)
-    magnetometer = Vector(sensor_mag.magnetic)
+    # accelerometer = Vector(sensor_imu.acceleration)
+    # gyroscope = Vector(sensor_imu.gyro)
+    magnetometer = Vector(0.0, 0.0, 0.0)
 
     # Time propagation tracking variables
-    last_mag_reading: float = -55555
-    # last_acc_reading: float = -55555
-    # last_gyr_reading: float = -55555
+    last_mag_reading = Vector(0.0, 0.0, 0.0)
     last_acc_reading = Vector(0.0, 0.0, 0.0)
     last_gyr_reading = Vector(0.0, 0.0, 0.0)
     
-    current_mag = 0
     #looped code
     while True:
         # current_mag = sensor_mag.magnetic
-        print(threshold_mag(current_mag, last_mag_reading))
+        last_mag_reading = threshold_mag(magnetometer, last_mag_reading)
+        print(last_mag_reading.x)
+        print(last_mag_reading.y)
+        print(last_mag_reading.z)
         # print(sensor_imu.acceleration)
         # print(sensor_imu.gyro)
-        last_mag_reading = current_mag
-        current_mag += random.random()*5
-        last_acc_reading, last_gyr_reading = IMUthreshold(accelerometer, gyroscope, last_acc_reading, last_gyr_reading)
+
+        magnetometer.x = random.random()*5
+        magnetometer.y = random.random()*5
+        magnetometer.z = random.random()*5
+
+        # last_acc_reading, last_gyr_reading = IMUthreshold(accelerometer, gyroscope, last_acc_reading, last_gyr_reading)
         # get the new acceleration and gyro readings
         time.sleep(1.0)
