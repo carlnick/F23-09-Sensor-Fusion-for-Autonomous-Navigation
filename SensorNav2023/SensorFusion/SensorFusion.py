@@ -14,12 +14,15 @@ import adafruit_mmc56x3
 from adafruit_lsm6ds.lsm6dsox import LSM6DSOX
 import random
 
+START_VALUE:float = -55555555
+MAG_THRESHOLD:float = 100 # Assuming data is in microTeslas
+MAG_DELTA_THRESHOLD:float = 1 # Needs to be reviewed once data is obtained
+
 def threshold_mag(data, last_data):
-    # Assuming  data is in microTeslas
-    if data < -100 or data > 100:
+    if data.x < -100 or data.x > 100:
         return "data bad"
 
-    if last_data != -55555:
+    if last_data != START_VALUE:
         if abs(data - last_data) > 5:
             return "data bad"
         
@@ -34,9 +37,9 @@ if __name__ == "__main__":
     # sensor_mag = adafruit_mmc56x3.MMC5603(i2c_mag)
 
     # Time propagation tracking variables
-    last_mag_reading: float = -55555
-    last_acc_reading: float = -55555
-    last_gyr_reading: float = -55555
+    last_mag_reading: float = START_VALUE
+    last_acc_reading: float = START_VALUE
+    last_gyr_reading: float = START_VALUE
     
     current_mag = 0
     #looped code
