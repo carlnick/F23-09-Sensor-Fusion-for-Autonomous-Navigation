@@ -1,1 +1,1 @@
-This is the folder for all IMU reltated code.
+This is the folder for all IMU-related code.
