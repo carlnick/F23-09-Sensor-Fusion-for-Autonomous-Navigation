@@ -128,6 +128,7 @@ if __name__ == "__main__":
     accelerometer = Vector()
     gyroscope = Vector()
     magnetometer = Vector()
+    quat:np.array = [0, 0, 0, 1]
 
     # Time propagation tracking variables
     last_mag_reading = Vector()
@@ -148,7 +149,8 @@ if __name__ == "__main__":
         # filteredData = (1-weight)*filteredData + weight*newData
         # fusedData = (1-weight)*gyroData + weight*accelMagData
         
-        quat:Vector = quaternion(p_r_y=p_r_y)
+    
+        quat = np.multiply(quat, quaternion(p_r_y=p_r_y))
 
         # print(sensor_imu.acceleration)
         # print(sensor_imu.gyro)
