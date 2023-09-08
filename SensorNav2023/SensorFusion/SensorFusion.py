@@ -114,6 +114,27 @@ def IMUthreshold(accelerometer, gyroscope, accel, gyro):
 
     return accel, gyro
     
+# Find the current position & velocity of the object
+def currentPositionVelocity(acceleration, prevVel, prevPos, gravity, timeDelta):
+    linearAccel = Vector()
+
+    linearAccel.x = acceleration.x - gravity.x
+    linearAccel.y = acceleration.y - gravity.y
+    linearAccel.z = acceleration.z - gravity.z
+
+    velocity = Vector()
+
+    velocity.x = prevVel.x + linearAccel.x * timeDelta
+    velocity.y = prevVel.y + linearAccel.y * timeDelta
+    velocity.z = prevVel.z + linearAccel.z * timeDelta
+
+    position = Vector()
+
+    position.x = prevPos.x + prevVel.x * timeDelta
+    position.y = prevPos.y + prevVel.y * timeDelta
+    position.z = prevPos.z + prevVel.z * timeDelta
+
+    return position, velocity
 
 if __name__ == "__main__":
     # instances of each board 
