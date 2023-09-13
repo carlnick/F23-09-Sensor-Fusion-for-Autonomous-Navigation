@@ -36,13 +36,3 @@ def mag_voting(mag_one, mag_two, mag_three, threshold=7.0):
     avg_z = np.mean(z_arr)
 
     return [avg_x, avg_y, avg_z]
-
-# Example usage:
-magnetometer_readings = [
-    [10.5, 11.2, 40.0],  # X-axis readings (an outlier beyond threshold)
-    [5.6, 6.2, 6.7],     # Y-axis readings
-    [20.1, 21.5, 19.9]   # Z-axis readings
-]
-
-result = vote_and_discard_outlier(magnetometer_readings, threshold=7.0)
-print("Averaged readings after discarding outliers above the threshold:", result)
