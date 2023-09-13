@@ -2,11 +2,6 @@
 import numpy as np
 
 def mag_voting(mag_one, mag_two, mag_three, threshold=7.0):
-    if len(magnetometer_readings) != 3:
-        raise ValueError("The input should be a 3D list with readings from three magnetometers.")
-
-    x_readings, y_readings, z_readings = magnetometer_readings
-
     # Convert readings to NumPy arrays for efficient calculations
     x_arr = np.array(mag_one[0], mag_two[0], mag_three[0])
     y_arr = np.array(mag_one[1], mag_two[1], mag_three[1])
