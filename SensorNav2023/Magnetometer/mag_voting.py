@@ -1,6 +1,6 @@
 import numpy as np
 
-def mag_voting(mag_one, mag_two, mag_three, threshold=7.0):
+def mag_voting(mag_one, mag_two, mag_three, threshold):
     # Convert readings to NumPy arrays for efficient calculations
     x_arr = np.array(mag_one[0], mag_two[0], mag_three[0])
     y_arr = np.array(mag_one[1], mag_two[1], mag_three[1])
