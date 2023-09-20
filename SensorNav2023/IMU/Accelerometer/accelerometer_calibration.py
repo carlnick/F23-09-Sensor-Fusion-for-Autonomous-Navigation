@@ -7,15 +7,15 @@ i2c = board.I2C()
 
 tca = adafruit_tca9548a.TCA9548A(i2c)
 
-imu0 = LSM6DSOX(tca[0])
-imu1 = LSM6DSOX(tca[3])
-imu2 = LSM6DSOX(tca[5])
+imu0 = LSM6DSOX(tca[1])
+imu1 = LSM6DSOX(tca[4])
+imu2 = LSM6DSOX(tca[7])
 
 
 def collect_data(imu, axis):
     num_samples = 100
     data_average = 0.0
-    timestep = 0.1
+    timestep = 0.01
     for i in range(num_samples):
         data_average += imu.acceleration[axis]
         time.sleep(timestep)

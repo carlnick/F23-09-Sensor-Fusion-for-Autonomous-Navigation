@@ -124,20 +124,12 @@ class Magnetometer(object):
     self.b = -np.dot(M_1, n)
     self.A_1 = np.real(self.F / np.sqrt(np.dot(n.T, np.dot(M_1, n)) - d) * linalg.sqrtm(M))
     
-    #print("M:\n", M, "\nn:\n", n, "\nd:\n", d)        
-    #print("M_1:\n",M_1, "\nb:\n", self.b, "\nA_1:\n", self.A_1)
-    
     print("Soft iron transformation matrix:\n",self.A_1)
     print("Hard iron bias:\n", self.b)
 
     plt.rcParams["figure.autolayout"] = True
     fig = plt.figure()
     ax = fig.add_subplot(111)
-    #ax.scatter(data[:,0], data[:,1], data[:,2], marker='o', color='r')
-    # ~ ax.scatter(data[:,0], data[:,1], color='r', label='X VS Y')
-    # ~ ax.scatter(data[:,1], data[:,2], color='g', label='Y VS Z')
-    # ~ ax.scatter(data[:,2], data[:,0], color='b', label='Z VS X')
-    # ~ plt.show()
     result = [] 
     for row in data: 
     
