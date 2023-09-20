@@ -86,12 +86,19 @@ def pitch_roll_yaw(accel_data:Vector, mag_data:Vector):
 
 def quaternion(p_r_y:Vector):
     quaternion:np.array
-    # calculate the quaternion component of each euler angle
-    quaternion_pitch:np.array = [math.cos(p_r_y.x/2), math.sin(p_r_y.x/2), 0, 0]
-    quaternion_roll:np.array = [math.cos(p_r_y.y/2), 0, math.sin(p_r_y.y/2), 0]
-    quaternion_yaw:np.array = [math.cos(p_r_y.z/2), 0, 0, math.sin(p_r_y.z/2)]
-    # combine them by multiplying
-    quaternion = np.multiply(np.multiply(quaternion_yaw, quaternion_pitch), quaternion_roll);
+    # calculate the quaternion components based on euler angle trig
+    # note: function assumes angles in radians
+    quaternion_w = (math.cos(p_r_y.y/2) * math.cos(p_r_y.x/2) * math.cos(p_r_y.z/2)
+                    + math.sin(p_r_y.y/2) * math.sin(p_r_y.x/2) * math.sin(p_r_y.z)/2)
+    quaternion_y = (math.sin(p_r_y.y/2) * math.cos(p_r_y.x/2) * math.cos(p_r_y.z/2)
+                    - math.cos(p_r_y.y/2) * math.sin(p_r_y.x/2) * math.sin(p_r_y.z)/2)
+    quaternion_x = (math.cos(p_r_y.y/2) * math.sin(p_r_y.x/2) * math.cos(p_r_y.z/2)
+                    + math.sin(p_r_y.y/2) * math.cos(p_r_y.x/2) * math.sin(p_r_y.z)/2)
+    quaternion_z = (math.cos(p_r_y.y/2) * math.cos(p_r_y.x/2) * math.sin(p_r_y.z/2)
+                    - math.sin(p_r_y.y/2) * math.sin(p_r_y.x/2) * math.cos(p_r_y.z)/2)
+
+    # create quaternion vector
+    quaternion = [quaternion_w,quaternion_x,quaternion_y,quaternion_z]
 
     return quaternion
 
@@ -115,7 +122,12 @@ def IMUthreshold(accelerometer, gyroscope, accel, gyro):
     return accel, gyro
     
 # Find the current position & velocity of the object
-def currentPositionVelocity(acceleration, prevVel, prevPos, gravity, timeDelta):
+def currentPositionVelocity(acceleration, quaternion, prevVel, prevPos, timeDelta):
+    gravity = Vector()
+    gravity.x = 2 * (quaternion[1] * quaternion[3] - quaternion[0] * quaternion[2])
+    gravity.y = 2 * (quaternion[0] * quaternion[1] + quaternion[2] * quaternion[3])
+    gravity.z = quaternion[0]*quaternion[0] - quaternion[1]*quaternion[1] - quaternion[2]*quaternion[2] + quaternion[3]*quaternion[3]
+
     linearAccel = Vector()
 
     linearAccel.x = acceleration.x - gravity.x
@@ -149,12 +161,26 @@ if __name__ == "__main__":
     accelerometer = Vector()
     gyroscope = Vector()
     magnetometer = Vector()
+    quat:np.array = [0.0, 0.0, 0.0, 1.0]
 
     # Time propagation tracking variables
     last_mag_reading = Vector()
     last_acc_reading = Vector()
     last_gyr_reading = Vector()
     
+    # TEST CODE FOR QUATERNION FUNCTION
+    # for i in range(0, 50):
+    #     test_pry1 = Vector(i,i,i)
+    #     test_pry2 = Vector(i,0.0,0.0)
+    #     test_pry3 = Vector(0.0,i,0.0)
+    #     test_pry4 = Vector(0.0,0.0,i)
+    #     print(quaternion(test_pry1))
+    #     print(quaternion(test_pry2))
+    #     print(quaternion(test_pry3))
+    #     print(quaternion(test_pry4))
+     # TEST CODE FOR QUATERNION FUNCTION
+
+
     #looped code
     while True:
         # current_mag = sensor_mag.magnetic
@@ -169,7 +195,9 @@ if __name__ == "__main__":
         # filteredData = (1-weight)*filteredData + weight*newData
         # fusedData = (1-weight)*gyroData + weight*accelMagData
         
-        quat:Vector = quaternion(p_r_y=p_r_y)
+    
+        quat = np.multiply(quat, quaternion(p_r_y=p_r_y))
+       
 
         # print(sensor_imu.acceleration)
         # print(sensor_imu.gyro)
