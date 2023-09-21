@@ -43,5 +43,5 @@ def get_magnetic():
 	
 	threshold = 7.0
 	
-	return(cal_mag0, cal_mag1, cal_mag2, threshold)
+	return mag_voting(cal_mag0, cal_mag1, cal_mag2, threshold)
 
