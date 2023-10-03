@@ -26,6 +26,9 @@ class Vector:
         self.x = x
         self.y = y
         self.z = z
+
+    def __str__(self): 
+        return "[%.8f, %.8f, %.8f]" % (self.x, self.y, self.z)
     
     def sum(self):
         return (self.x + self.y + self.z)
@@ -192,12 +195,21 @@ if __name__ == "__main__":
         
         # below is part of complementary filter for filtering new data 
         # and for combining gyroscope data and magnetometer data
+        # error magnitude = ((magnitude of local frame acceleration - 9.81 (G)) / 9.81 (G))
+        # if (em > 0.2) weight = 0
+        # else if (em > 0.1) weight = (-1 * em * 10 + 2) * em **SHOULD PROBABLY BE CHANGED FOR OUR SYSTEM
+        # else weight = 1 * em                                **BOTH SLOPE AND CUTOFFS
+        #                                                     **similar system could maybe be used for gyroscope
+        #                                                     **what is global reference for that? equivalent of gravity = 9.81
         # filteredData = (1-weight)*filteredData + weight*newData
         # fusedData = (1-weight)*gyroData + weight*accelMagData
-        
+        # new data is result of quaternion call
+        # filtered data starts with original [0,0,0,1] and is edited each time around
+        # weight is detailed above
+        # gyro data is gyro quat and accelmag data is result of accelmag quat
+        # second one is most likely what we will apply
     
         quat = np.multiply(quat, quaternion(p_r_y=p_r_y))
-       
 
         # print(sensor_imu.acceleration)
         # print(sensor_imu.gyro)
