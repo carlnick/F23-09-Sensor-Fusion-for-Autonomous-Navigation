@@ -187,7 +187,15 @@ def currentPositionVelocity(acceleration, quaternion, prevVel, prevPos, timeDelt
     return position, velocity
 
 def complementaryFilter():
-    
+    # Prediction step:
+    # qOrientation(k) = -(1/2) * AngularAccel * qOrientation(k-1)
+    qOrientation:np.array = [1.0, 0.0, 0.0, 0.0]
+    qEstimate:np.array = [1.0, 0.0, 0.0, 0.0]
+    qGyroscope:np.array = [0.0, gyroscope.x, gyroscope.y, gyroscope.z]
+    qOrientation = -(1/2) * qGyroscope
+
+    return
+
 
 if __name__ == "__main__":
     # instances of each board 
@@ -232,8 +240,7 @@ if __name__ == "__main__":
         p_r_y = pitch_roll_yaw(accel_data=accelerometer, mag_data=magnetometer)
 
         # Complementary filter:
-        # Prediction step:
-        # qOrientation(k) = -(1/2) * AngularAccel * qOrientation(k-1)
+        
         
         # below is part of complementary filter for filtering new data 
         # and for combining gyroscope data and magnetometer data
