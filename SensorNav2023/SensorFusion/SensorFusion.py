@@ -198,11 +198,13 @@ def currentPositionVelocity(acceleration, quaternion, prevVel, prevPos, timeDelt
 
 def complementaryFilter():
     # Prediction step:
-    # qOrientation(k) = -(1/2) * AngularAccel * qOrientation(k-1)
     qOrientation:np.array = [1.0, 0.0, 0.0, 0.0]
     qEstimate:np.array = [1.0, 0.0, 0.0, 0.0]
     qGyroscope:np.array = [0.0, gyroscope.x, gyroscope.y, gyroscope.z]
-    qOrientation = -(1/2) * qGyroscope
+
+    qOrientation = -(1/2) * quat_mult(qGyroscope, qEstimate)
+
+
 
     return
 
