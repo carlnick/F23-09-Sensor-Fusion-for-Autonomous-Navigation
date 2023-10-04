@@ -186,6 +186,9 @@ def currentPositionVelocity(acceleration, quaternion, prevVel, prevPos, timeDelt
 
     return position, velocity
 
+def complementaryFilter():
+    
+
 if __name__ == "__main__":
     # instances of each board 
     # i2c_imu = board.I2C()
