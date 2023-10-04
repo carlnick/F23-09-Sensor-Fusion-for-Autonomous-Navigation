@@ -87,27 +87,27 @@ def pitch_roll_yaw(accel_data:Vector, mag_data:Vector):
 
     return p_r_y
 
-def quaternion(p_r_y:Vector):
-    quaternion:np.array
-    # calculate the quaternion components based on euler angle trig
-    # note: function assumes angles in radians
-    quaternion_w = (math.cos(p_r_y.y/2) * math.cos(p_r_y.x/2) * math.cos(p_r_y.z/2)
-                    + math.sin(p_r_y.y/2) * math.sin(p_r_y.x/2) * math.sin(p_r_y.z)/2)
-    quaternion_y = (math.sin(p_r_y.y/2) * math.cos(p_r_y.x/2) * math.cos(p_r_y.z/2)
-                    - math.cos(p_r_y.y/2) * math.sin(p_r_y.x/2) * math.sin(p_r_y.z)/2)
-    quaternion_x = (math.cos(p_r_y.y/2) * math.sin(p_r_y.x/2) * math.cos(p_r_y.z/2)
-                    + math.sin(p_r_y.y/2) * math.cos(p_r_y.x/2) * math.sin(p_r_y.z)/2)
-    quaternion_z = (math.cos(p_r_y.y/2) * math.cos(p_r_y.x/2) * math.sin(p_r_y.z/2)
-                    - math.sin(p_r_y.y/2) * math.sin(p_r_y.x/2) * math.cos(p_r_y.z)/2)
-
-    # create quaternion vector
-    quaternion = [quaternion_w,quaternion_x,quaternion_y,quaternion_z]
-
-    return quaternion
-
-def quaternion(accel_data:Vector, mag_data:Vector):
+def quaternion(accel_data:Vector, mag_data:Vector = None):
     quat_accel:np.array
     quat_mag:np.array
+    if(mag_data is None):
+        quaternion:np.array
+        p_r_y = accel_data
+        # calculate the quaternion components based on euler angle trig
+        # note: function assumes angles in radians
+        quaternion_w = (math.cos(p_r_y.y/2) * math.cos(p_r_y.x/2) * math.cos(p_r_y.z/2)
+                       + math.sin(p_r_y.y/2) * math.sin(p_r_y.x/2) * math.sin(p_r_y.z)/2)
+        quaternion_y = (math.sin(p_r_y.y/2) * math.cos(p_r_y.x/2) * math.cos(p_r_y.z/2)
+                        - math.cos(p_r_y.y/2) * math.sin(p_r_y.x/2) * math.sin(p_r_y.z)/2)
+        quaternion_x = (math.cos(p_r_y.y/2) * math.sin(p_r_y.x/2) * math.cos(p_r_y.z/2)
+                        + math.sin(p_r_y.y/2) * math.cos(p_r_y.x/2) * math.sin(p_r_y.z)/2)
+        quaternion_z = (math.cos(p_r_y.y/2) * math.cos(p_r_y.x/2) * math.sin(p_r_y.z/2)
+                       - math.sin(p_r_y.y/2) * math.sin(p_r_y.x/2) * math.cos(p_r_y.z)/2)
+
+        # create quaternion vector
+        quaternion = [quaternion_w,quaternion_x,quaternion_y,quaternion_z]
+
+        return quaternion
     # calculate the quaternion components based on euler angle trig
     # note: function assumes angles in radians
     if accel_data.z >= 0:
