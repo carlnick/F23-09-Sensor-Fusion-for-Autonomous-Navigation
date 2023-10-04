@@ -87,6 +87,16 @@ def pitch_roll_yaw(accel_data:Vector, mag_data:Vector):
 
     return p_r_y
 
+def quat_mult(p:np.array, q:np.array):
+    quaternion:np.array = [0,0,0,0]
+
+    quaternion[0] = (p[0] * q[0] - p[1] * q[1] - p[2] * q[2] - p[3] * q[3])
+    quaternion[1] = (p[0] * q[1] + p[1] * q[0] + p[2] * q[3] - p[3] * q[2])
+    quaternion[2] = (p[0] * q[2] - p[1] * q[3] + p[2] * q[0] + p[3] * q[1])
+    quaternion[3] = (p[0] * q[3] + p[1] * q[2] - p[2] * q[1] + p[3] * q[0])
+
+    return quaternion
+
 def quaternion(accel_data:Vector, mag_data:Vector = None):
     quat_accel:np.array
     quat_mag:np.array
@@ -112,8 +122,8 @@ def quaternion(accel_data:Vector, mag_data:Vector = None):
     # note: function assumes angles in radians
     if accel_data.z >= 0:
         quaternion_w = (math.sqrt((accel_data.z +1)/2))
-        quaternion_y = (-1*(accel_data.y)/math.sqrt(2*(accel_data.z +1)))
-        quaternion_x = ((accel_data.x)/math.sqrt(2*(accel_data.z +1)))
+        quaternion_x = (-1*(accel_data.y)/math.sqrt(2*(accel_data.z +1)))
+        quaternion_y = ((accel_data.x)/math.sqrt(2*(accel_data.z +1)))
         quaternion_z = (0)
     else:
         quaternion_w = (-1*(accel_data.y)/math.sqrt(2*(1-accel_data.z)))
@@ -127,8 +137,8 @@ def quaternion(accel_data:Vector, mag_data:Vector = None):
 
     if mag_data.x >= 0:
         quaternion_w = (math.sqrt((gamma + mag_data.x * math.sqrt(gamma))/(2*gamma)))
-        quaternion_y = (0)
         quaternion_x = (0)
+        quaternion_y = (0)
         quaternion_z = (mag_data.y/(math.sqrt(2*(gamma + mag_data.x * math.sqrt(gamma)))))
     else:
         quaternion_w = (mag_data.y/(math.sqrt(2*(gamma - mag_data.x * math.sqrt(gamma)))))
@@ -138,7 +148,7 @@ def quaternion(accel_data:Vector, mag_data:Vector = None):
     # create quaternion vector
     quat_mag = [quaternion_w,quaternion_x,quaternion_y,quaternion_z]
 
-    return quat_accel, quat_mag
+    return quat_mult(quat_accel, quat_mag)
 
 
 # Compare the acceleromter and gyroscope values to their thresholds and sets their values to the previous accelerometer and gyroscope vectors
