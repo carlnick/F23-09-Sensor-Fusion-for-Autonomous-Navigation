@@ -192,6 +192,10 @@ if __name__ == "__main__":
         p_r_y:Vector = Vector()
 
         p_r_y = pitch_roll_yaw(accel_data=accelerometer, mag_data=magnetometer)
+
+        # Complementary filter:
+        # Prediction step:
+        # qOrientation(k) = -(1/2) * AngularAccel * qOrientation(k-1)
         
         # below is part of complementary filter for filtering new data 
         # and for combining gyroscope data and magnetometer data
