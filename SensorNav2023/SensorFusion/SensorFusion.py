@@ -105,6 +105,41 @@ def quaternion(p_r_y:Vector):
 
     return quaternion
 
+def quaternion(accel_data:Vector, mag_data:Vector):
+    quat_accel:np.array
+    quat_mag:np.array
+    # calculate the quaternion components based on euler angle trig
+    # note: function assumes angles in radians
+    if accel_data.z >= 0:
+        quaternion_w = (math.sqrt((accel_data.z +1)/2))
+        quaternion_y = (-1*(accel_data.y)/math.sqrt(2*(accel_data.z +1)))
+        quaternion_x = ((accel_data.x)/math.sqrt(2*(accel_data.z +1)))
+        quaternion_z = (0)
+    else:
+        quaternion_w = (-1*(accel_data.y)/math.sqrt(2*(1-accel_data.z)))
+        quaternion_x = (math.sqrt((1-accel_data.z)/2))
+        quaternion_y = (0)
+        quaternion_z = ((accel_data.x)/math.sqrt(2*(1-accel_data.z)))
+
+    quat_accel = [quaternion_w,quaternion_x,quaternion_y,quaternion_z]
+
+    gamma = mag_data.x * mag_data.x + mag_data.y * mag_data.y
+
+    if mag_data.x >= 0:
+        quaternion_w = (math.sqrt((gamma + mag_data.x * math.sqrt(gamma))/(2*gamma)))
+        quaternion_y = (0)
+        quaternion_x = (0)
+        quaternion_z = (mag_data.y/(math.sqrt(2*(gamma + mag_data.x * math.sqrt(gamma)))))
+    else:
+        quaternion_w = (mag_data.y/(math.sqrt(2*(gamma - mag_data.x * math.sqrt(gamma)))))
+        quaternion_x = (0)
+        quaternion_y = (0)
+        quaternion_z = (math.sqrt((gamma - mag_data.x * math.sqrt(gamma))/(2*gamma)))
+    # create quaternion vector
+    quat_mag = [quaternion_w,quaternion_x,quaternion_y,quaternion_z]
+
+    return quat_accel, quat_mag
+
 
 # Compare the acceleromter and gyroscope values to their thresholds and sets their values to the previous accelerometer and gyroscope vectors
 def IMUthreshold(accelerometer, gyroscope, accel, gyro):
@@ -164,7 +199,7 @@ if __name__ == "__main__":
     accelerometer = Vector()
     gyroscope = Vector()
     magnetometer = Vector()
-    quat:np.array = [0.0, 0.0, 0.0, 1.0]
+    quat:np.array = [1.0, 0.0, 0.0, 0.0]
 
     # Time propagation tracking variables
     last_mag_reading = Vector()
@@ -208,7 +243,7 @@ if __name__ == "__main__":
         # filteredData = (1-weight)*filteredData + weight*newData
         # fusedData = (1-weight)*gyroData + weight*accelMagData
         # new data is result of quaternion call
-        # filtered data starts with original [0,0,0,1] and is edited each time around
+        # filtered data starts with original [1,0,0,0] and is edited each time around
         # weight is detailed above
         # gyro data is gyro quat and accelmag data is result of accelmag quat
         # second one is most likely what we will apply
