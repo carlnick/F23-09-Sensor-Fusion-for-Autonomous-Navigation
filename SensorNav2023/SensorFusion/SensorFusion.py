@@ -15,23 +15,16 @@ import adafruit_mmc56x3
 from adafruit_lsm6ds.lsm6dsox import LSM6DSOX
 import random
 
+#import class types
+from Vector import Vector
+from Quaternion import Quaternion
+
 START_VALUE:float = -55555555 # placeholder value to start with, out of range of measurements
 ZERO:float = 0.0 # zero
 MAG_THRESHOLD:float = 50 # Assuming data is in microTeslas
 MAG_SUM_THRESHOLD: float = 100
 MAG_DELTA_THRESHOLD:float = 1 # Needs to be reviewed once data is obtained
 
-class Vector:
-    def __init__(self, x = 0.0, y = 0.0, z = 0.0):
-        self.x = x
-        self.y = y
-        self.z = z
-
-    def __str__(self): 
-        return "[%.8f, %.8f, %.8f]" % (self.x, self.y, self.z)
-    
-    def sum(self):
-        return (self.x + self.y + self.z)
 
 # Placeholder values, currently unknown what should be within these
 threshaccel = Vector()
