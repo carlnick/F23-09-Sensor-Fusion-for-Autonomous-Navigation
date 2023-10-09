@@ -27,6 +27,26 @@ class Quaternion:
 
     def conjugate(self): 
         return Quaternion(self.q0, -self.q1, -self.q2, -self.q3)
+    
+    def inverse(self):
+        new_q0 = self.q0 / (self.q0 * self.q0 + self.q1 * self.q1 + self.q2 * self.q2 + self.q3 * self.q3)
+        new_q1 = -1 * self.q1 / (self.q0 * self.q0 + self.q1 * self.q1 + self.q2 * self.q2 + self.q3 * self.q3)
+        new_q2 = -1 * self.q2 / (self.q0 * self.q0 + self.q1 * self.q1 + self.q2 * self.q2 + self.q3 * self.q3)
+        new_q3 = -1 * self.q3 / (self.q0 * self.q0 + self.q1 * self.q1 + self.q2 * self.q2 + self.q3 * self.q3)
+
+        return Quaternion(new_q0, new_q1, new_q2, new_q3)
+    
+    def normalize(self):
+
+        new_q0 = self.q0 / (self.q0 * self.q0 + self.q1 * self.q1 + self.q2 * self.q2 + self.q3 * self.q3)
+        new_q1 = self.q1 / (self.q0 * self.q0 + self.q1 * self.q1 + self.q2 * self.q2 + self.q3 * self.q3)
+        new_q2 = self.q2 / (self.q0 * self.q0 + self.q1 * self.q1 + self.q2 * self.q2 + self.q3 * self.q3)
+        new_q3 = self.q3 / (self.q0 * self.q0 + self.q1 * self.q1 + self.q2 * self.q2 + self.q3 * self.q3)
+
+        return Quaternion(new_q0, new_q1, new_q2, new_q3)
+    
+    def norm(self):
+        return (self.q0 * self.q0 + self.q1 * self.q1 + self.q2 * self.q2 + self.q3 * self.q3)
 
     def __add__(self, other):
         if isinstance(other, Quaternion):

@@ -1,6 +1,7 @@
 from Quaternion import Quaternion
 from Vector import Vector
 import time
+import math
 """
 Complementary Filter Class.
 Creates an instance of the filter.
@@ -28,6 +29,11 @@ class ComplementaryFilter:
         self.deltaTime = 0.0
 
         self.predictedGravity = Vector()
+        self.epsilon = 0.9
+        self.alpha = 0.0
+        self.alpha_const = 0.5
+        self.unit_quat = Quaternion(1,0,0,0)
+
 
     """
     Prediction step.
@@ -74,19 +80,43 @@ class ComplementaryFilter:
         We then use the best filtering gain used with LERP and SLERP and a piecewise continuous function of
         the magnitude error called "gain factor" to obtain this instance's filtering gain.
     """
-
+    def compute_alpha(self, local_acceleration_vector:Quaternion):
+        error_magnitude = ((local_acceleration_vector.norm() - 9.81) / 9.81)
+        if error_magnitude > 0.2: weight = 0
+        else: 
+            if error_magnitude > 0.1: weight = (-1 * error_magnitude * 10 + 2) * error_magnitude #**SHOULD PROBABLY BE CHANGED FOR OUR SYSTEM
+            else: weight = 1 * error_magnitude                #**BOTH SLOPE AND CUTOFFS
+                                                            #**similar system could maybe be used for gyroscope
+                                                            #**what is global reference for that? equivalent of
+        return weight
     """
     Accelerometer-Based Correction.
 
     Corrects the predicted quaternion only in the roll and pitch components.
     """
-    def correctAcceleration(self):
-        # obtain current acceleration
-        acceleration = Vector()
+    def correctAcceleration(self, body_frame_gravity:Quaternion, local_frame_acceleration:Quaternion):
         # obtain predicted gravity
-        predictedGravity = self.qOrientation.conjugate() * acceleration * self.qOrientation
-        #! This would return a Quaternion instead of a Vector so it may be better to use matrix notation.
-        return
+        inv_pred = self.qOrientation.inverse()
+        # Rotation matrix for inv_pred multiplied by the body frame gravity vector measured by the accelerometer
+        rotation_result:Vector = Vector() # comment above will replace Vector()
+
+        delta_Accel:Quaternion = Quaternion()
+        # initial delta values
+        delta_Accel.q0 = math.sqrt((rotation_result.z + 1) / 2)
+        delta_Accel.q1 = -1* rotation_result.y / (math.sqrt(2 * (rotation_result.z + 1)))
+        delta_Accel.q2 = rotation_result.x / (math.sqrt(2 * (rotation_result.z + 1)))
+        delta_Accel.q3 = 0
+        # compute alpha weight
+        self.alpha = self.alpha_const * self.compute_alpha(local_frame_acceleration)
+        # complete LERP or SLERP
+        if delta_Accel.q0 > self.epsilon:
+            lerp_quat = (1- self.alpha) * self.unit_quat + self.alpha * delta_Accel
+            lerp_quat = lerp_quat.normalize()
+            return (self.qPureAngular * lerp_quat)
+        else:  
+            # in progress
+            slerp_quat = Quaternion()
+            return (self.qPureAngular * slerp_quat)
 
     """
     Magnetometer-Based Correction.
@@ -94,6 +124,8 @@ class ComplementaryFilter:
     Corrects the predicted quaternion in the yaw component.
     """
     def correctMagneticField(self):
+        inv_pred = self.qOrientation.inverse()
+        # Rotation matrix for inv_pred multiplied by 
         return
 
     """
