@@ -116,6 +116,7 @@ class ComplementaryFilter:
             return self.qEstimate
         else:  
             # in progress
+            
             slerp_quat = Quaternion()
             return (self.qPureAngular * slerp_quat)
 

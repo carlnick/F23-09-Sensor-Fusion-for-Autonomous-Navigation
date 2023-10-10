@@ -27,6 +27,11 @@ class Quaternion:
 
     def conjugate(self): 
         return Quaternion(self.q0, -self.q1, -self.q2, -self.q3)
+
+    def dot(self, other):
+
+        result = (self.q0 * other.q0) + (self.q1 * other.q1) + (self.q2 * other.q2) + (self.q3 * other.q3)
+        return result
     
     def inverse(self):
         new_q0 = self.q0 / (self.q0 * self.q0 + self.q1 * self.q1 + self.q2 * self.q2 + self.q3 * self.q3)
