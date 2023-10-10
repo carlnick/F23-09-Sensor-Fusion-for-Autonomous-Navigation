@@ -112,7 +112,8 @@ class ComplementaryFilter:
         if delta_Accel.q0 > self.epsilon:
             lerp_quat = (1- self.alpha) * self.unit_quat + self.alpha * delta_Accel
             lerp_quat = lerp_quat.normalize()
-            return (self.qPureAngular * lerp_quat)
+            self.qEstimate = self.qPureAngular * lerp_quat
+            return self.qEstimate
         else:  
             # in progress
             slerp_quat = Quaternion()
@@ -123,9 +124,31 @@ class ComplementaryFilter:
 
     Corrects the predicted quaternion in the yaw component.
     """
-    def correctMagneticField(self):
-        inv_pred = self.qOrientation.inverse()
-        # Rotation matrix for inv_pred multiplied by 
+    def correctMagneticField(self, magnetometer:Quaternion, local_frame_acceleration:Quaternion):
+        # obtain predicted gravity
+        # inv_pred = self.qEstimate.inverse()
+        # Rotation matrix for inv_pred multiplied by the body frame gravity vector measured by the accelerometer
+        # rotation_result:Vector = Vector() # comment above will replace Vector()
+        gamma = magnetometer.x * magnetometer.x + magnetometer.y * magnetometer.y
+
+        delta_Mag:Quaternion = Quaternion()
+        # initial delta values
+        delta_Mag.q0 = math.sqrt((gamma + magnetometer.x * math.sqrt(gamma)) / (2*gamma))
+        delta_Mag.q1 = 0
+        delta_Mag.q2 = 0
+        delta_Mag.q3 = magnetometer.y / math.sqrt(2 * (gamma + magnetometer.x * math.sqrt(gamma)))
+        # compute alpha weight
+        self.alpha = self.alpha_const * self.compute_alpha(local_frame_acceleration)
+        # complete LERP or SLERP
+        if delta_Mag.q0 > self.epsilon:
+            lerp_quat = (1- self.alpha) * self.unit_quat + self.alpha * delta_Mag
+            lerp_quat = lerp_quat.normalize()
+            self.qEstimate = self.qPureAngular * lerp_quat
+            return self.qEstimate
+        else:  
+            # in progress
+            slerp_quat = Quaternion()
+            return (self.qPureAngular * slerp_quat)
         return
 
     """
