@@ -117,8 +117,10 @@ class ComplementaryFilter:
             self.qResult = self.qOrientation * lerp_quat
         else:  
             # in progress
-            
-            slerp_quat = Quaternion()
+            qIdentity = Quaternion()
+            angle = math.acos(delta_Accel.dot(qIdentity))
+
+            slerp_quat =(math.sin((1 - self.alpha) * angle) / math.sin(angle)) * qIdentity + (math.sin(self.alpha * angle) / math.sin(angle)) * delta_Accel
             self.qResult = self.qOrientation * slerp_quat
 
     """
@@ -148,7 +150,10 @@ class ComplementaryFilter:
             self.qResult = self.qResult * lerp_quat
         else:  
             # in progress
-            slerp_quat = Quaternion()
+            qIdentity = Quaternion()
+            angle = math.acos(delta_Mag.dot(qIdentity))
+
+            slerp_quat =(math.sin((1 - self.alpha) * angle) / math.sin(angle)) * qIdentity + (math.sin(self.alpha * angle) / math.sin(angle)) * delta_Accel
             self.qResult = self.qResult * slerp_quat
 
     """
