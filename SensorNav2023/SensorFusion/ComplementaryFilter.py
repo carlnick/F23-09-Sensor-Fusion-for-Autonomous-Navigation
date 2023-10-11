@@ -153,7 +153,7 @@ class ComplementaryFilter:
             qIdentity = Quaternion()
             angle = math.acos(delta_Mag.dot(qIdentity))
 
-            slerp_quat =(math.sin((1 - self.alpha) * angle) / math.sin(angle)) * qIdentity + (math.sin(self.alpha * angle) / math.sin(angle)) * delta_Accel
+            slerp_quat =(math.sin((1 - self.alpha) * angle) / math.sin(angle)) * qIdentity + (math.sin(self.alpha * angle) / math.sin(angle)) * delta_Mag
             self.qResult = self.qResult * slerp_quat
 
     """
