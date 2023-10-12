@@ -1,5 +1,5 @@
-from Quaternion import Quaternion
-from Vector import Vector
+from SensorFusion.Quaternion import Quaternion
+from SensorFusion.Vector import Vector
 import time
 import math
 
@@ -216,7 +216,7 @@ class ComplementaryFilter:
             plt.ylabel('Top to bottom: Roll, Pitch, Yaw')
 
         # Set up plot to call animate() function periodically
-        ani = animation.FuncAnimation(fig, animate, fargs=(xs, ys_r, ys_p, ys_y), interval=1000)
+        ani = animation.FuncAnimation(fig, animate, fargs=(xs, ys_r, ys_p, ys_y), interval=1000, blit = True)
         plt.show()
         
     
@@ -229,9 +229,9 @@ class ComplementaryFilter:
         angles.x = math.atan2(sinr_cosp, cosr_cosp)
 
         # pitch (y-axis rotation)
-        sinp = math.sqrt(1 + 2 * (q.q0 * q.q2 - q.q1 * q.q3))
-        cosp = math.sqrt(1 - 2 * (q.q0 * q.q2 - q.q1 * q.q3))
-        angles.y = 2 * math.atan2(sinp, cosp) - math.M_PI / 2
+        sinp = math.sqrt(math.fabs(1 + 2 * (q.q0 * q.q2 - q.q1 * q.q3)))
+        cosp = math.sqrt(math.fabs(1 - 2 * (q.q0 * q.q2 - q.q1 * q.q3)))
+        angles.y = 2 * math.atan2(sinp, cosp) - math.pi / 2
 
         # yaw (z-axis rotation)
         siny_cosp = 2 * (q.q0 * q.q3 + q.q1 * q.q2)

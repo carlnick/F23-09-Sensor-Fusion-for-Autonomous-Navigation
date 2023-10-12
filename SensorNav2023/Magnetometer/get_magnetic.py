@@ -32,9 +32,9 @@ def get_magnetic():
 	mux = multiplexer.TCA9548A(i2c)
 	
 	# get raw data
-    	mag_0 = magnetometer.MMC5603(mux[0])
+	mag_0 = magnetometer.MMC5603(mux[0])
    	mag_1 = magnetometer.MMC5603(mux[1])
-    	mag_2 = magnetometer.MMC5603(mux[2])
+	mag_2 = magnetometer.MMC5603(mux[2])
 
 	# calibrate raw data
 	cal_mag0 = apply_calibration(mag_0, hard_iron0, soft_iron0)

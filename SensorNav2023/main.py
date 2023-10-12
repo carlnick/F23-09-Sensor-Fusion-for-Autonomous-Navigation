@@ -1,5 +1,6 @@
 # IMPORT STATEMENTS
-from SensorFusion import ComplementaryFilter, Vector
+from SensorFusion.Vector import Vector
+from SensorFusion.ComplementaryFilter import ComplementaryFilter
 from SensorFusion.SensorFusion import orientation 
 from IMU.IMU import IMU
 from Magnetometer.Magnetometer import Magnetometer
@@ -8,7 +9,7 @@ from Magnetometer.Magnetometer import Magnetometer
 if __name__ == "__main__":
 
     # Initialize imu and magnetometer
-    imu = IMU([1, 3, 4])
+    imu = IMU([1, 4, 7])
     mag = Magnetometer()
 
     # Initialize Accelerometer Vector
@@ -49,6 +50,6 @@ if __name__ == "__main__":
 
         # Correction Step
         compFilter.correctOrientation(vAccelerometer, qAccelerometer, vMagnetometer)
-        
         # Obtain Corrected Orientation
-        compFilter.graphResult()
+        # compFilter.graphResult()
+        print(compFilter.qResult)

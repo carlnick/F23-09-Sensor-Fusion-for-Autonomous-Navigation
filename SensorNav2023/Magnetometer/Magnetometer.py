@@ -65,7 +65,7 @@ class Magnetometer:
 
 
     # main function to get calibrated and filtered magnetic field data
-    def get_magnetic():
+    def get_magnetic(self):
 	
         i2c = board.I2C()
         mux = multiplexer.TCA9548A(i2c)
@@ -85,13 +85,13 @@ class Magnetometer:
         return Magnetometer.__mag_voting(cal_mag0, cal_mag1, cal_mag2, threshold)
     
     # get the heading of the magnetic field data (x is the heading/north)
-    def get_heading(mag_data):
+    def get_heading(self, mag_data):
         heading = -1* (np.arctan2(mag_data[0], mag_data[1]) * 180) / np.pi
         if(heading < 0):
             heading += 360
 
         return heading
         
-while(1):
+if __name__ == "__main__":
     mag_data = Magnetometer.get_magnetic()
     print(Magnetometer.get_heading(mag_data))

@@ -16,8 +16,8 @@ from adafruit_lsm6ds.lsm6dsox import LSM6DSOX
 import random
 
 #import class types
-from Vector import Vector
-from Quaternion import Quaternion
+from SensorFusion.Quaternion import Quaternion
+from SensorFusion.Vector import Vector
 
 START_VALUE:float = -55555555 # placeholder value to start with, out of range of measurements
 ZERO:float = 0.0 # zero
