@@ -12,20 +12,13 @@ if __name__ == "__main__":
     mag = Magnetometer()
 
     # Initialize Accelerometer Vector
-    vAccelerometer = Vector()
-    vAccelerometer.x = imu.get_acceleration('x')
-    vAccelerometer.y = imu.get_acceleration('y')
-    vAccelerometer.z = imu.get_acceleration('z')
+    vAccelerometer = Vector(*imu.get_acceleration_all())
 
     # Initialize Gyroscope Vector
-    vGyroscope = Vector()
-    vGyroscope.x = imu.get_gyroscope('x')
-    vGyroscope.y = imu.get_gyroscope('y')
-    vGyroscope.z = imu.get_gyroscope('z')
+    vGyroscope = Vector(*imu.get_gyroscope_all())
 
     # Initialize Magnetometer Vector
-    vMagnetometer = Vector()
-    vMagnetometer.set(*mag.get_magnetic())
+    vMagnetometer = Vector(*mag.get_magnetic())
 
     # Normalize vectors for orientation sensor fusion
     vNormAccel = vAccelerometer.normalize()
