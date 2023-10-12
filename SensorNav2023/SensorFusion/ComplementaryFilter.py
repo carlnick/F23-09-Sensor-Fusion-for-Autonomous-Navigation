@@ -14,18 +14,18 @@ class ComplementaryFilter:
 
     Should initialize each and every variable that will be used for filtering.
     """
-    def __init__(self):
+    def __init__(self, startingOrientation):
 
         self.angularRate = Vector()
         self.qPureAngular = Quaternion()
 
-        self.qEstimate = Quaternion()
+        self.qEstimate = startingOrientation
 
         self.qOrientation = Quaternion()
         self.qdOrientation = Quaternion()
 
-        self.currTime = time.time_ns()
-        self.lastTime = 0.0
+        self.currTime = 0.0
+        self.lastTime = time.time_ns()
         self.deltaTime = 0.0
 
         self.predictedGravity = Vector()
@@ -42,7 +42,7 @@ class ComplementaryFilter:
     
     The initial orientation quaternion is calculated before the initialization of our filter. (Section 4)
     """
-    def predict(self):
+    def predict(self, gyro_data):
         # Here we get the angular rate from the gyroscope
 
         # Next we set the delta time
@@ -51,7 +51,7 @@ class ComplementaryFilter:
         self.lastTime = self.currTime
 
         # Set the angular rates to the given variables
-        self.angularRate.set("""new angular rates""")
+        self.angularRate = gyro_data
         self.qPureAngular.set(0, self.angularRate.x, self.angularRate.y, self.angularRate.z)
 
         # Calculate this time instant's derivative of the orientation

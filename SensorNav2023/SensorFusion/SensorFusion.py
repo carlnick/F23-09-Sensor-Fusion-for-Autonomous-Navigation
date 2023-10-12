@@ -90,58 +90,52 @@ def quat_mult(p:np.array, q:np.array):
 
     return quaternion
 
-def quaternion(accel_data:Vector, mag_data:Vector = None):
-    quat_accel:np.array
-    quat_mag:np.array
+def orientation(accel_data:Vector, mag_data:Vector = None):
+    qAccelerometer = Quaternion()
+    qMagnetometer = Quaternion()
     if(mag_data is None):
-        quaternion:np.array
+        qResult = Quaternion()
         p_r_y = accel_data
         # calculate the quaternion components based on euler angle trig
         # note: function assumes angles in radians
-        quaternion_w = (math.cos(p_r_y.y/2) * math.cos(p_r_y.x/2) * math.cos(p_r_y.z/2)
+        qResult.set_q0(math.cos(p_r_y.y/2) * math.cos(p_r_y.x/2) * math.cos(p_r_y.z/2)
                        + math.sin(p_r_y.y/2) * math.sin(p_r_y.x/2) * math.sin(p_r_y.z)/2)
-        quaternion_y = (math.sin(p_r_y.y/2) * math.cos(p_r_y.x/2) * math.cos(p_r_y.z/2)
+        qResult.set_q1(math.sin(p_r_y.y/2) * math.cos(p_r_y.x/2) * math.cos(p_r_y.z/2)
                         - math.cos(p_r_y.y/2) * math.sin(p_r_y.x/2) * math.sin(p_r_y.z)/2)
-        quaternion_x = (math.cos(p_r_y.y/2) * math.sin(p_r_y.x/2) * math.cos(p_r_y.z/2)
+        qResult.set_q2(math.cos(p_r_y.y/2) * math.sin(p_r_y.x/2) * math.cos(p_r_y.z/2)
                         + math.sin(p_r_y.y/2) * math.cos(p_r_y.x/2) * math.sin(p_r_y.z)/2)
-        quaternion_z = (math.cos(p_r_y.y/2) * math.cos(p_r_y.x/2) * math.sin(p_r_y.z/2)
+        qResult.set_q3(math.cos(p_r_y.y/2) * math.cos(p_r_y.x/2) * math.sin(p_r_y.z/2)
                        - math.sin(p_r_y.y/2) * math.sin(p_r_y.x/2) * math.cos(p_r_y.z)/2)
 
-        # create quaternion vector
-        quaternion = [quaternion_w,quaternion_x,quaternion_y,quaternion_z]
-
-        return quaternion
+        return qResult
     # calculate the quaternion components based on euler angle trig
     # note: function assumes angles in radians
     if accel_data.z >= 0:
-        quaternion_w = (math.sqrt((accel_data.z +1)/2))
-        quaternion_x = (-1*(accel_data.y)/math.sqrt(2*(accel_data.z +1)))
-        quaternion_y = ((accel_data.x)/math.sqrt(2*(accel_data.z +1)))
-        quaternion_z = (0)
+        qAccelerometer.set_q0(math.sqrt((accel_data.z +1)/2))
+        qAccelerometer.set_q1(-1*(accel_data.y)/math.sqrt(2*(accel_data.z +1)))
+        qAccelerometer.set_q2((accel_data.x)/math.sqrt(2*(accel_data.z +1)))
+        qAccelerometer.set_q3(0)
     else:
-        quaternion_w = (-1*(accel_data.y)/math.sqrt(2*(1-accel_data.z)))
-        quaternion_x = (math.sqrt((1-accel_data.z)/2))
-        quaternion_y = (0)
-        quaternion_z = ((accel_data.x)/math.sqrt(2*(1-accel_data.z)))
+        qAccelerometer.set_q0(-1*(accel_data.y)/math.sqrt(2*(1-accel_data.z)))
+        qAccelerometer.set_q1(math.sqrt((1-accel_data.z)/2))
+        qAccelerometer.set_q2(0)
+        qAccelerometer.set_q3((accel_data.x)/math.sqrt(2*(1-accel_data.z)))
 
-    quat_accel = [quaternion_w,quaternion_x,quaternion_y,quaternion_z]
+    rotatedMagField = Quaternion.rotateMultipy(qAccelerometer.inverse(), mag_data)
+    gamma = rotatedMagField.x**2 + rotatedMagField.y**2
 
-    gamma = mag_data.x * mag_data.x + mag_data.y * mag_data.y
-
-    if mag_data.x >= 0:
-        quaternion_w = (math.sqrt((gamma + mag_data.x * math.sqrt(gamma))/(2*gamma)))
-        quaternion_x = (0)
-        quaternion_y = (0)
-        quaternion_z = (mag_data.y/(math.sqrt(2*(gamma + mag_data.x * math.sqrt(gamma)))))
+    if rotatedMagField.x >= 0:
+        qMagnetometer.set_q0(math.sqrt((gamma + rotatedMagField.x * math.sqrt(gamma))/(2*gamma)))
+        qMagnetometer.set_q1(0)
+        qMagnetometer.set_q2(0)
+        qMagnetometer.set_q3(rotatedMagField.y/(math.sqrt(2*(gamma + rotatedMagField.x * math.sqrt(gamma)))))
     else:
-        quaternion_w = (mag_data.y/(math.sqrt(2*(gamma - mag_data.x * math.sqrt(gamma)))))
-        quaternion_x = (0)
-        quaternion_y = (0)
-        quaternion_z = (math.sqrt((gamma - mag_data.x * math.sqrt(gamma))/(2*gamma)))
-    # create quaternion vector
-    quat_mag = [quaternion_w,quaternion_x,quaternion_y,quaternion_z]
+        qMagnetometer.set_q0(rotatedMagField.y/(math.sqrt(2*(gamma - rotatedMagField.x * math.sqrt(gamma)))))
+        qMagnetometer.set_q1(0)
+        qMagnetometer.set_q2(0)
+        qMagnetometer.set_q3(math.sqrt((gamma - rotatedMagField.x * math.sqrt(gamma))/(2*gamma)))
 
-    return quat_mult(quat_accel, quat_mag)
+    return qAccelerometer * qMagnetometer
 
 
 # Compare the acceleromter and gyroscope values to their thresholds and sets their values to the previous accelerometer and gyroscope vectors
@@ -189,17 +183,6 @@ def currentPositionVelocity(acceleration, quaternion, prevVel, prevPos, timeDelt
 
     return position, velocity
 
-def complementaryFilter():
-    # Prediction step:
-    qOrientation:np.array = [1.0, 0.0, 0.0, 0.0]
-    qEstimate:np.array = [1.0, 0.0, 0.0, 0.0]
-    qGyroscope:np.array = [0.0, gyroscope.x, gyroscope.y, gyroscope.z]
-
-    qOrientation = -(1/2) * quat_mult(qGyroscope, qEstimate)
-
-
-
-    return
 
 
 if __name__ == "__main__":
@@ -228,10 +211,10 @@ if __name__ == "__main__":
     #     test_pry2 = Vector(i,0.0,0.0)
     #     test_pry3 = Vector(0.0,i,0.0)
     #     test_pry4 = Vector(0.0,0.0,i)
-    #     print(quaternion(test_pry1))
-    #     print(quaternion(test_pry2))
-    #     print(quaternion(test_pry3))
-    #     print(quaternion(test_pry4))
+    #     print(orientation(test_pry1))
+    #     print(orientation(test_pry2))
+    #     print(orientation(test_pry3))
+    #     print(orientation(test_pry4))
      # TEST CODE FOR QUATERNION FUNCTION
 
 
@@ -263,7 +246,7 @@ if __name__ == "__main__":
         # gyro data is gyro quat and accelmag data is result of accelmag quat
         # second one is most likely what we will apply
     
-        quat = np.multiply(quat, quaternion(p_r_y=p_r_y))
+        quat = np.multiply(quat, orientation(p_r_y=p_r_y))
 
         # print(sensor_imu.acceleration)
         # print(sensor_imu.gyro)

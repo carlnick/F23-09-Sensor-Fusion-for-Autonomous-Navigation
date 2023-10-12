@@ -25,6 +25,23 @@ class Quaternion:
         self.q2 = q2
         self.q3 = q3
 
+    @staticmethod
+    def rotateMultipy(quat, vector):
+        result = Vector()
+        result.x = (vector.x * (quat.q0**2 + quat.q1**2 - quat.q2**2 - quat.q3**2) 
+                    + vector.y * (2 * (quat.q1 * quat.q2 - quat.q0 * quat.q3)) 
+                    + vector.z * (2 * (quat.q1 * quat.q3 + quat.q0 * quat.q2)))
+
+        result.y = (vector.x * (2 * (quat.q1 * quat.q2 + quat.q0 * quat.q3)) 
+                    + vector.y * (quat.q0**2 - quat.q1**2 + quat.q2**2 - quat.q3**2) 
+                    + vector.z * (2 * (quat.q2 * quat.q3 - quat.q0 * quat.q1)))
+
+        result.z = (vector.x * (2 * (quat.q1 * quat.q3 - quat.q0 * quat.q2)) 
+                    + vector.y * (2 * (quat.q2 * quat.q3 + quat.q0 * quat.q1)) 
+                    + vector.z * (quat.q0**2 - quat.q1**2 - quat.q2**2 + quat.q3**2))
+
+        return result
+
     def conjugate(self): 
         return Quaternion(self.q0, -self.q1, -self.q2, -self.q3)
 
@@ -116,3 +133,6 @@ class Quaternion:
             return Quaternion(q0, q1, q2, q3)
         else:
             raise TypeError("Only Quaternion or Numeric literals for operand types are allowed.")
+
+    def __str__(self):
+        return "[%.8f, %.8f, %.8f, %.8f]" % (self.q0, self.q1, self.q2, self.q3)
