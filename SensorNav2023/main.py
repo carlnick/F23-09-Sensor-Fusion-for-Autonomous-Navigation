@@ -45,11 +45,15 @@ if __name__ == "__main__":
         vGyroscope.y = imu.get_gyroscope('y')
         vGyroscope.z = imu.get_gyroscope('z')
 
+        # Normalize vectors for orientation sensor fusion
+        vNormAccel = vAccelerometer.normalize()
+        vNormMag = vMagnetometer.normalize()
+
         # Prediction Step
         compFilter.predict(vGyroscope)
 
         # Correction Step
-        compFilter.correctOrientation(vAccelerometer, qAccelerometer, vMagnetometer)
+        compFilter.correctOrientation(vNormAccel, vNormMag)
         # Obtain Corrected Orientation
         # compFilter.graphResult()
         print(compFilter.qResult)

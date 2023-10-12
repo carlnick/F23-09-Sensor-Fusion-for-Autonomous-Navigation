@@ -42,6 +42,23 @@ class Quaternion:
 
         return result
 
+    @staticmethod
+    def rotateTMultiply(quat, vector):
+        result = Vector()
+        result.x = (vector.x * (quat.q0**2 + quat.q1**2 - quat.q2**2 - quat.q3**2) 
+                    + vector.y * (2 * (quat.q1 * quat.q2 + quat.q0 * quat.q3)) 
+                    + vector.z * (2 * (quat.q1 * quat.q3 - quat.q0 * quat.q2)))
+
+        result.y = (vector.x * (2 * (quat.q1 * quat.q2 - quat.q0 * quat.q3))
+                    + vector.y * (quat.q0**2 - quat.q1**2 + quat.q2**2 - quat.q3**2) 
+                    + vector.z * (2 * (quat.q2 * quat.q3 + quat.q0 * quat.q1)))
+
+        result.z = (vector.x * (2 * (quat.q1 * quat.q3 + quat.q0 * quat.q2)) 
+                    + vector.y * (2 * (quat.q2 * quat.q3 - quat.q0 * quat.q1)) 
+                    + vector.z * (quat.q0**2 - quat.q1**2 - quat.q2**2 + quat.q3**2))
+
+        return result
+
     def conjugate(self): 
         return Quaternion(self.q0, -self.q1, -self.q2, -self.q3)
 
@@ -59,11 +76,12 @@ class Quaternion:
         return Quaternion(new_q0, new_q1, new_q2, new_q3)
     
     def normalize(self):
-
-        new_q0 = self.q0 / (self.q0 * self.q0 + self.q1 * self.q1 + self.q2 * self.q2 + self.q3 * self.q3)
-        new_q1 = self.q1 / (self.q0 * self.q0 + self.q1 * self.q1 + self.q2 * self.q2 + self.q3 * self.q3)
-        new_q2 = self.q2 / (self.q0 * self.q0 + self.q1 * self.q1 + self.q2 * self.q2 + self.q3 * self.q3)
-        new_q3 = self.q3 / (self.q0 * self.q0 + self.q1 * self.q1 + self.q2 * self.q2 + self.q3 * self.q3)
+        magnitude = self.q0 * self.q0 + self.q1 * self.q1 + self.q2 * self.q2 + self.q3 * self.q3
+        
+        new_q0 = self.q0 / (magnitude)
+        new_q1 = self.q1 / (magnitude)
+        new_q2 = self.q2 / (magnitude)
+        new_q3 = self.q3 / (magnitude)
 
         return Quaternion(new_q0, new_q1, new_q2, new_q3)
     

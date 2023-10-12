@@ -101,19 +101,16 @@ class ComplementaryFilter:
 
     Corrects the predicted quaternion only in the roll and pitch components.
     """
-    def correctAcceleration(self, body_frame_gravity:Vector, local_frame_acceleration:Quaternion):
-        # obtain predicted gravity
-        inv_pred = self.qOrientation.inverse()
+    def correctAcceleration(self, local_frame_acceleration:Vector):
 
-        Quaternion.rotateMultipy(inv_pred, body_frame_gravity)
         # Rotation matrix for inv_pred multiplied by the body frame gravity vector measured by the accelerometer
-        rotation_result:Vector = Quaternion.rotateMultipy(inv_pred, body_frame_gravity) # comment above will replace Vector()
+        vPredictedGravity = Quaternion.rotateTMultipy(self.qOrientation, local_frame_acceleration)
 
         delta_Accel:Quaternion = Quaternion()
         # initial delta values
-        delta_Accel.q0 = math.sqrt((rotation_result.z + 1) / 2)
-        delta_Accel.q1 = -1* rotation_result.y / (math.sqrt(2 * (rotation_result.z + 1)))
-        delta_Accel.q2 = rotation_result.x / (math.sqrt(2 * (rotation_result.z + 1)))
+        delta_Accel.q0 = math.sqrt((vPredictedGravity.z + 1) / 2)
+        delta_Accel.q1 = -1* vPredictedGravity.y / (math.sqrt(2 * (vPredictedGravity.z + 1)))
+        delta_Accel.q2 = vPredictedGravity.x / (math.sqrt(2 * (vPredictedGravity.z + 1)))
         delta_Accel.q3 = 0
         # compute alpha weight
         weight = self.alpha_const #* self.compute_alpha(local_frame_acceleration)
@@ -135,19 +132,18 @@ class ComplementaryFilter:
 
     Corrects the predicted quaternion in the yaw component.
     """
-    def correctMagneticField(self, magnetometer:Vector, local_frame_acceleration:Quaternion):
-        # obtain predicted gravity
-        inv_pred = self.qResult.inverse()
+    def correctMagneticField(self, magnetometer:Vector):
+
         # Rotation matrix for inv_pred multiplied by the body frame gravity vector measured by the accelerometer
-        rotation_result:Vector = Quaternion.rotateMultipy(inv_pred, magnetometer) # comment above will replace Vector()
-        gamma = rotation_result.x * rotation_result.x + rotation_result.y * rotation_result.y
+        vWorldFrameMag = Quaternion.rotatTMultipy(self.qResult, magnetometer)
+        gamma = vWorldFrameMag.x**2 + vWorldFrameMag.y**2
 
         delta_Mag:Quaternion = Quaternion()
         # initial delta values
-        delta_Mag.q0 = math.sqrt((gamma + rotation_result.x * math.sqrt(gamma)) / (2*gamma))
+        delta_Mag.q0 = math.sqrt((gamma + vWorldFrameMag.x * math.sqrt(gamma)) / (2*gamma))
         delta_Mag.q1 = 0
         delta_Mag.q2 = 0
-        delta_Mag.q3 = rotation_result.y / math.sqrt(2 * (gamma + rotation_result.x * math.sqrt(gamma)))
+        delta_Mag.q3 = vWorldFrameMag.y / math.sqrt(2 * (gamma + vWorldFrameMag.x * math.sqrt(gamma)))
         # compute alpha weight
         weight = self.alpha_const #* self.compute_alpha(local_frame_acceleration)
         # complete LERP or SLERP
@@ -170,9 +166,9 @@ class ComplementaryFilter:
     they are separated into two steps.
     First should be accelerometer-based correction, then magnetometer-based correction.
     """
-    def correctOrientation(self, body_frame_gravity:Vector, local_frame_acceleration:Quaternion, magnetometer:Vector):
-        self.correctAcceleration(body_frame_gravity, local_frame_acceleration)
-        self.correctMagneticField(magnetometer, local_frame_acceleration)
+    def correctOrientation(self, local_frame_acceleration:Vector, magnetometer:Vector):
+        self.correctAcceleration(local_frame_acceleration)
+        self.correctMagneticField(magnetometer)
 
     def graphResult(self):
         roll_pitch_yaw:Vector = self.toEuler(self.qResult)
