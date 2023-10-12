@@ -36,8 +36,7 @@ class ComplementaryFilter:
 
         self.predictedGravity = Vector()
         self.epsilon = 0.9
-        self.alpha = 0.0
-        self.alpha_const = 0.5
+        self.alpha_const = 0.7
         self.unit_quat = Quaternion(1,0,0,0)
 
         self.qResult = Quaternion()
@@ -105,8 +104,10 @@ class ComplementaryFilter:
     def correctAcceleration(self, body_frame_gravity:Vector, local_frame_acceleration:Quaternion):
         # obtain predicted gravity
         inv_pred = self.qOrientation.inverse()
+
+        Quaternion.rotateMultipy(inv_pred, body_frame_gravity)
         # Rotation matrix for inv_pred multiplied by the body frame gravity vector measured by the accelerometer
-        rotation_result:Vector = Vector() # comment above will replace Vector()
+        rotation_result:Vector = Quaternion.rotateMultipy(inv_pred, body_frame_gravity) # comment above will replace Vector()
 
         delta_Accel:Quaternion = Quaternion()
         # initial delta values
@@ -115,10 +116,10 @@ class ComplementaryFilter:
         delta_Accel.q2 = rotation_result.x / (math.sqrt(2 * (rotation_result.z + 1)))
         delta_Accel.q3 = 0
         # compute alpha weight
-        self.alpha = self.alpha_const #* self.compute_alpha(local_frame_acceleration)
+        weight = self.alpha_const #* self.compute_alpha(local_frame_acceleration)
         # complete LERP or SLERP
         if delta_Accel.q0 > self.epsilon:
-            lerp_quat = (1- self.alpha) * self.unit_quat + self.alpha * delta_Accel
+            lerp_quat = (1- weight) * self.unit_quat + weight * delta_Accel
             lerp_quat = lerp_quat.normalize()
             self.qResult = self.qOrientation * lerp_quat
         else:  
@@ -126,7 +127,7 @@ class ComplementaryFilter:
             qIdentity = Quaternion()
             angle = math.acos(delta_Accel.dot(qIdentity))
 
-            slerp_quat =(math.sin((1 - self.alpha) * angle) / math.sin(angle)) * qIdentity + (math.sin(self.alpha * angle) / math.sin(angle)) * delta_Accel
+            slerp_quat =(math.sin((1 - weight) * angle) / math.sin(angle)) * qIdentity + (math.sin(weight * angle) / math.sin(angle)) * delta_Accel
             self.qResult = self.qOrientation * slerp_quat
 
     """
@@ -138,7 +139,7 @@ class ComplementaryFilter:
         # obtain predicted gravity
         inv_pred = self.qResult.inverse()
         # Rotation matrix for inv_pred multiplied by the body frame gravity vector measured by the accelerometer
-        rotation_result:Vector = Vector() # comment above will replace Vector()
+        rotation_result:Vector = Quaternion.rotateMultipy(inv_pred, magnetometer) # comment above will replace Vector()
         gamma = rotation_result.x * rotation_result.x + rotation_result.y * rotation_result.y
 
         delta_Mag:Quaternion = Quaternion()
@@ -148,10 +149,10 @@ class ComplementaryFilter:
         delta_Mag.q2 = 0
         delta_Mag.q3 = rotation_result.y / math.sqrt(2 * (gamma + rotation_result.x * math.sqrt(gamma)))
         # compute alpha weight
-        self.alpha = self.alpha_const #* self.compute_alpha(local_frame_acceleration)
+        weight = self.alpha_const #* self.compute_alpha(local_frame_acceleration)
         # complete LERP or SLERP
         if delta_Mag.q0 > self.epsilon:
-            lerp_quat = (1- self.alpha) * self.unit_quat + self.alpha * delta_Mag
+            lerp_quat = (1- weight) * self.unit_quat + weight * delta_Mag
             lerp_quat = lerp_quat.normalize()
             self.qResult = self.qResult * lerp_quat
         else:  
@@ -159,7 +160,7 @@ class ComplementaryFilter:
             qIdentity = Quaternion()
             angle = math.acos(delta_Mag.dot(qIdentity))
 
-            slerp_quat =(math.sin((1 - self.alpha) * angle) / math.sin(angle)) * qIdentity + (math.sin(self.alpha * angle) / math.sin(angle)) * delta_Mag
+            slerp_quat =(math.sin((1 - weight) * angle) / math.sin(angle)) * qIdentity + (math.sin(weight * angle) / math.sin(angle)) * delta_Mag
             self.qResult = self.qResult * slerp_quat
 
     """
