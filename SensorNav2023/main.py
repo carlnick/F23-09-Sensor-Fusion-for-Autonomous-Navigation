@@ -25,7 +25,8 @@ if __name__ == "__main__":
     vNormMag = vMagnetometer.normalize()
 
     # Obtain the initial orientation
-    qFirstPrediction = orientation(vNormAccel, vNormMag)
+    qAccelerometer, qMagnetometer = orientation(vNormAccel, vNormMag)
+    qFirstPrediction = qAccelerometer * qMagnetometer
 
     # Initialize Complementary Filter with initial orientation
     compFilter = ComplementaryFilter(qFirstPrediction)
@@ -47,5 +48,7 @@ if __name__ == "__main__":
         compFilter.predict(vGyroscope)
 
         # Correction Step
-
+        compFilter.correctOrientation(vAccelerometer, qAccelerometer, vMagnetometer)
+        
         # Obtain Corrected Orientation
+        compFilter.graphResult()

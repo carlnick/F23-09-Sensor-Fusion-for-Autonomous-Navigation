@@ -2,6 +2,12 @@ from Quaternion import Quaternion
 from Vector import Vector
 import time
 import math
+
+
+import datetime as dt
+import matplotlib.pyplot as plt
+import matplotlib.animation as animation
+
 """
 Complementary Filter Class.
 Creates an instance of the filter.
@@ -96,7 +102,7 @@ class ComplementaryFilter:
 
     Corrects the predicted quaternion only in the roll and pitch components.
     """
-    def correctAcceleration(self, body_frame_gravity:Quaternion, local_frame_acceleration:Quaternion):
+    def correctAcceleration(self, body_frame_gravity:Vector, local_frame_acceleration:Quaternion):
         # obtain predicted gravity
         inv_pred = self.qOrientation.inverse()
         # Rotation matrix for inv_pred multiplied by the body frame gravity vector measured by the accelerometer
@@ -109,7 +115,7 @@ class ComplementaryFilter:
         delta_Accel.q2 = rotation_result.x / (math.sqrt(2 * (rotation_result.z + 1)))
         delta_Accel.q3 = 0
         # compute alpha weight
-        self.alpha = self.alpha_const * self.compute_alpha(local_frame_acceleration)
+        self.alpha = self.alpha_const #* self.compute_alpha(local_frame_acceleration)
         # complete LERP or SLERP
         if delta_Accel.q0 > self.epsilon:
             lerp_quat = (1- self.alpha) * self.unit_quat + self.alpha * delta_Accel
@@ -128,7 +134,7 @@ class ComplementaryFilter:
 
     Corrects the predicted quaternion in the yaw component.
     """
-    def correctMagneticField(self, magnetometer:Quaternion, local_frame_acceleration:Quaternion):
+    def correctMagneticField(self, magnetometer:Vector, local_frame_acceleration:Quaternion):
         # obtain predicted gravity
         inv_pred = self.qResult.inverse()
         # Rotation matrix for inv_pred multiplied by the body frame gravity vector measured by the accelerometer
@@ -137,12 +143,12 @@ class ComplementaryFilter:
 
         delta_Mag:Quaternion = Quaternion()
         # initial delta values
-        delta_Mag.q0 = math.sqrt((gamma + magnetometer.x * math.sqrt(gamma)) / (2*gamma))
+        delta_Mag.q0 = math.sqrt((gamma + rotation_result.x * math.sqrt(gamma)) / (2*gamma))
         delta_Mag.q1 = 0
         delta_Mag.q2 = 0
-        delta_Mag.q3 = magnetometer.y / math.sqrt(2 * (gamma + magnetometer.x * math.sqrt(gamma)))
+        delta_Mag.q3 = rotation_result.y / math.sqrt(2 * (gamma + rotation_result.x * math.sqrt(gamma)))
         # compute alpha weight
-        self.alpha = self.alpha_const * self.compute_alpha(local_frame_acceleration)
+        self.alpha = self.alpha_const #* self.compute_alpha(local_frame_acceleration)
         # complete LERP or SLERP
         if delta_Mag.q0 > self.epsilon:
             lerp_quat = (1- self.alpha) * self.unit_quat + self.alpha * delta_Mag
@@ -163,6 +169,72 @@ class ComplementaryFilter:
     they are separated into two steps.
     First should be accelerometer-based correction, then magnetometer-based correction.
     """
-    def correctOrientation(self):
-        self.correctAcceleration()
-        self.correctMagneticField()
+    def correctOrientation(self, body_frame_gravity:Vector, local_frame_acceleration:Quaternion, magnetometer:Vector):
+        self.correctAcceleration(body_frame_gravity, local_frame_acceleration)
+        self.correctMagneticField(magnetometer, local_frame_acceleration)
+
+    def graphResult(self):
+        roll_pitch_yaw:Vector = self.toEuler(self.qResult)
+        # Create figure for plotting
+        fig = plt.figure()
+        ar = fig.add_subplot(3, 1, 1)
+        ap = fig.add_subplot(3, 1, 2)
+        ay = fig.add_subplot(3, 1, 3)
+        xs = []
+        ys_r = []
+        ys_p = []
+        ys_y = []
+
+        # This function is called periodically from FuncAnimation
+        def animate(i, xs, ys_r, ys_p, ys_y):
+
+            # Add x and y to lists
+            xs.append(dt.datetime.now().strftime('%H:%M:%S.%f'))
+            ys_r.append(roll_pitch_yaw.x)
+            ys_p.append(roll_pitch_yaw.y)
+            ys_y.append(roll_pitch_yaw.z)
+
+            # Limit x and y lists to 20 items
+            xs = xs[-20:]
+            ys_r = ys_r[-20:]
+            ys_p = ys_p[-20:]
+            ys_y = ys_y[-20:]
+
+            # Draw x and y lists
+            ar.clear()
+            ar.plot(xs, ys_r)
+            ap.clear()
+            ap.plot(xs, ys_p)
+            ay.clear()
+            ay.plot(xs, ys_y)
+
+            # Format plot
+            plt.xticks(rotation=45, ha='right')
+            plt.subplots_adjust(bottom=0.30)
+            plt.title('Euler Angles over Time')
+            plt.ylabel('Top to bottom: Roll, Pitch, Yaw')
+
+        # Set up plot to call animate() function periodically
+        ani = animation.FuncAnimation(fig, animate, fargs=(xs, ys_r, ys_p, ys_y), interval=1000)
+        plt.show()
+        
+    
+    def toEuler(self, q:Quaternion):
+        angles = Vector()
+
+        # roll (x-axis rotation)
+        sinr_cosp = 2 * (q.q0 * q.q1 + q.q2 * q.q3)
+        cosr_cosp = 1 - 2 * (q.q1 * q.q1 + q.q2 * q.q2)
+        angles.x = math.atan2(sinr_cosp, cosr_cosp)
+
+        # pitch (y-axis rotation)
+        sinp = math.sqrt(1 + 2 * (q.q0 * q.q2 - q.q1 * q.q3))
+        cosp = math.sqrt(1 - 2 * (q.q0 * q.q2 - q.q1 * q.q3))
+        angles.y = 2 * math.atan2(sinp, cosp) - math.M_PI / 2
+
+        # yaw (z-axis rotation)
+        siny_cosp = 2 * (q.q0 * q.q3 + q.q1 * q.q2)
+        cosy_cosp = 1 - 2 * (q.q2 * q.q2 + q.q3 * q.q3)
+        angles.z = math.atan2(siny_cosp, cosy_cosp)
+
+        return angles

@@ -135,7 +135,7 @@ def orientation(accel_data:Vector, mag_data:Vector = None):
         qMagnetometer.set_q2(0)
         qMagnetometer.set_q3(math.sqrt((gamma - rotatedMagField.x * math.sqrt(gamma))/(2*gamma)))
 
-    return qAccelerometer * qMagnetometer
+    return qAccelerometer, qMagnetometer
 
 
 # Compare the acceleromter and gyroscope values to their thresholds and sets their values to the previous accelerometer and gyroscope vectors
