@@ -169,6 +169,7 @@ class ComplementaryFilter:
     def correctOrientation(self, local_frame_acceleration:Vector, magnetometer:Vector):
         self.correctAcceleration(local_frame_acceleration)
         self.correctMagneticField(magnetometer)
+        self.qEstimate = self.qResult
 
     def graphResult(self):
         roll_pitch_yaw:Vector = self.toEuler(self.qResult)
