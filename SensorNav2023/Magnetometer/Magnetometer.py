@@ -8,23 +8,25 @@ import adafruit_tca9548a as multiplexer
 class Magnetometer:
 
     # Magnetometer 0 calibration parameters
-    hard_iron0 = np.array([33.99986952, 5.06027207, -127.74162784])
-    soft_iron0 = [[1.1568729, 0.02053911, 0.02432764],
-                [0.02053911, 1.17281592, 0.01611224],
-                [0.02432764, 0.01611224 ,1.18665655]]
+    hard_iron0 = np.array([59.39487654, 5.39098516, -7.68357777])
+    soft_iron0 = [[1.14979637, 0.00569657, 0.00237638],
+                [0.00569657, 1.1964999, -0.01135455],
+                [0.00237638, -0.01135455, 1.19870142]]
+
 
 
     # Magnetometer 1 calibration parameters
-    hard_iron1 = np.array([-43.09198574, 11.00891923, 75.1944151])
-    soft_iron1 = [[1.22511675, 0.02326508, 0.02639732],
-                [0.02326508, 1.2591332,  0.02921156],
-                [0.02639732, 0.02921156, 1.24770114]]
+    hard_iron1 = np.array([-167.74038797, 24.09046639, -96.88056222])
+    soft_iron1 = [[1.11254552, 0.02645651, 0.02254459],
+                [0.02645651, 1.14822925, 0.00176098],
+                [0.02254459, 0.00176098, 1.0770171]]
+
 
     # Magnetometer 2 calibration parameters
-    hard_iron2 = np.array([18.40675578, -10.6142152, -33.00257546])
-    soft_iron2 = [[ 1.12147563,  0.02356025,  0.01364192],
-                [ 0.02356025,  1.13388023, -0.00540468],
-                [ 0.01364192, -0.00540468,  1.1400925 ]]
+    hard_iron2 = np.array([15.41402626, -27.23083942, -14.3872628])
+    soft_iron2 = [[1.14568407e+00, 6.48283959e-04, 7.33334573e-05],
+                [6.48283959e-04,  1.15233447e+00, -1.16823200e-03],
+                [7.33334573e-05, -1.16823200e-03, 1.20095746e+00]]
 
 
     # voting function
@@ -93,5 +95,7 @@ class Magnetometer:
         return heading
         
 if __name__ == "__main__":
-    mag_data = Magnetometer.get_magnetic()
-    print(Magnetometer.get_heading(mag_data))
+    mag = Magnetometer()
+    while(1):
+        mag_data = mag.get_magnetic()
+        print(mag.get_heading(mag_data))
