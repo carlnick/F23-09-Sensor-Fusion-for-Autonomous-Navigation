@@ -4,6 +4,7 @@ from matplotlib import pyplot as plt
 import time
 import board
 import adafruit_mmc56x3 as magnetometer
+import adafruit_tca9548a as multiplexer
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 import datetime
@@ -68,7 +69,9 @@ class Magnetometer(object):
       
   def run(self):
     i2c = board.I2C()
-    sensor = magnetometer.MMC5603(i2c)
+    mux = multiplexer.TCA9548A(i2c)
+    sensor = magnetometer.MMC5603(mux[0])
+    
     # Deque for axes
     mag_x = []
     mag_y = []
