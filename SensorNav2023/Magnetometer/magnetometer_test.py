@@ -1,3 +1,6 @@
+# Used to test the magnetometer subsystem. The magnetometers will collect data for duration seconds
+# return the average to compare to your phone compass heading
+
 import time
 from Magnetometer.Magnetometer import Magnetometer
 
