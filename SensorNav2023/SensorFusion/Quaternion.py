@@ -1,4 +1,5 @@
 from SensorFusion.Vector import Vector
+import math
 class Quaternion:
 
     def __init__(self, q0=1.0, q1=0.0, q2=0.0, q3=0.0):
@@ -76,7 +77,7 @@ class Quaternion:
         return Quaternion(new_q0, new_q1, new_q2, new_q3)
     
     def normalize(self):
-        magnitude = self.q0 * self.q0 + self.q1 * self.q1 + self.q2 * self.q2 + self.q3 * self.q3
+        magnitude = math.sqrt(self.q0 * self.q0 + self.q1 * self.q1 + self.q2 * self.q2 + self.q3 * self.q3)
         
         new_q0 = self.q0 / (magnitude)
         new_q1 = self.q1 / (magnitude)
@@ -86,7 +87,7 @@ class Quaternion:
         return Quaternion(new_q0, new_q1, new_q2, new_q3)
     
     def norm(self):
-        return (self.q0 * self.q0 + self.q1 * self.q1 + self.q2 * self.q2 + self.q3 * self.q3)
+        return math.sqrt(self.q0 * self.q0 + self.q1 * self.q1 + self.q2 * self.q2 + self.q3 * self.q3)
 
     def __add__(self, other):
         if isinstance(other, Quaternion):

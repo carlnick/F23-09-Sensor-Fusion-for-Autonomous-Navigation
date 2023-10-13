@@ -135,7 +135,7 @@ class ComplementaryFilter:
     def correctMagneticField(self, magnetometer:Vector):
 
         # Rotation matrix for inv_pred multiplied by the body frame gravity vector measured by the accelerometer
-        vWorldFrameMag = Quaternion.rotatTMultipy(self.qResult, magnetometer)
+        vWorldFrameMag = Quaternion.rotateTMultipy(self.qResult, magnetometer)
         gamma = vWorldFrameMag.x**2 + vWorldFrameMag.y**2
 
         delta_Mag:Quaternion = Quaternion()
