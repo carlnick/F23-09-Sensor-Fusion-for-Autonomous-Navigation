@@ -4,7 +4,7 @@
 import time
 from Magnetometer.Magnetometer import Magnetometer
 
-def collect_data(duration):
+def collect_data(duration, axis1, axis2):
     mag = Magnetometer()
     sum_headings = 0
     num_samples = 0
@@ -12,7 +12,7 @@ def collect_data(duration):
     
     # collect heading data for duration seconds
     while time.time() - start_time < duration:
-        sum_headings += mag.get_heading(mag.get_magnetic(), 0, 1)
+        sum_headings += mag.get_heading(mag.get_magnetic(), axis1, axis2)
         num_samples += 1
         time.sleep(0.01)
     
@@ -24,5 +24,14 @@ if __name__ == "__main__":
     
     # time in seconds
     duration = 10
-    average = collect_data(duration)
-    print(average)
+    X = 0
+    Y = 1
+    Z = 2
+    averageXY = collect_data(duration, X, Y)
+    print(averageXY)
+    
+    averageYZ = collect_data(duration, Y, Z)
+    print(averageYZ)
+    
+    averageZX = collect_data(duration, Z, X)
+    print(averageZX)
