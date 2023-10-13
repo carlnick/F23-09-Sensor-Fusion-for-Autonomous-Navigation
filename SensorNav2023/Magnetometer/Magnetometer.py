@@ -87,8 +87,8 @@ class Magnetometer:
         return Magnetometer.__mag_voting(cal_mag0, cal_mag1, cal_mag2, threshold)
     
     # get the heading of the magnetic field data (x is the heading/north)
-    def get_heading(self, mag_data):
-        heading = -1* (np.arctan2(mag_data[0], mag_data[1]) * 180) / np.pi
+    def get_heading(self, mag_data, axis1, axis2):
+        heading = -1* (np.arctan2(mag_data[axis1], mag_data[axis2]) * 180) / np.pi
         if(heading < 0):
             heading += 360
 
@@ -98,4 +98,4 @@ if __name__ == "__main__":
     mag = Magnetometer()
     while(1):
         mag_data = mag.get_magnetic()
-        print(mag.get_heading(mag_data))
+        print(mag.get_heading(mag_data, 0, 1))

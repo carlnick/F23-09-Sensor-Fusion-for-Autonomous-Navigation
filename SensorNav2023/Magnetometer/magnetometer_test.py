@@ -12,7 +12,7 @@ def collect_data(duration):
     
     # collect heading data for duration seconds
     while time.time() - start_time < duration:
-        sum_headings += mag.get_heading(mag.get_magnetic())
+        sum_headings += mag.get_heading(mag.get_magnetic(), 0, 1)
         num_samples += 1
         time.sleep(0.01)
     
