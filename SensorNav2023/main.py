@@ -7,6 +7,7 @@ from Magnetometer.Magnetometer import Magnetometer
 import datetime as dt
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
+import sys
 # MAIN PROGRAM
 if __name__ == "__main__":
 
@@ -33,6 +34,9 @@ if __name__ == "__main__":
 
     # Initialize Complementary Filter with initial orientation
     compFilter = ComplementaryFilter(qFirstPrediction)
+
+    out_file = open('SensorFusionOutput.txt', 'w')
+    dataCount = 0;
 
     while(True):
         # Create figure for plotting
@@ -123,8 +127,14 @@ if __name__ == "__main__":
         compFilter.correctOrientation(vNormAccel, vNormMag)
         # Obtain Corrected Orientation
         # compFilter.graphResult()
-        
-        
+        if dataCount < 500:
+            axis, angle = compFilter.toAxisAngle(compFilter.qResult)
+            out_file.write(axis.__str__())
+            out_file.write('\n')
+            dataCount = dataCount + 1
+        else: 
+            out_file.close()
+            sys.exit(0)
         euler = compFilter.toEuler(compFilter.qResult)
         roll = round(euler.x, 2)
         pitch = round(euler.y, 2)
