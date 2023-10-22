@@ -2,7 +2,7 @@
 # return the average to compare to your phone compass heading
 
 import time
-from Magnetometer.Magnetometer import Magnetometer
+from Magnetometer import Magnetometer
 
 def collect_data(duration, axis1, axis2):
     mag = Magnetometer()
@@ -27,11 +27,11 @@ if __name__ == "__main__":
     X = 0
     Y = 1
     Z = 2
-    averageXY = collect_data(duration, X, Y)
+    averageXY = collect_data(duration, Y, X)
     print(averageXY)
     
-    averageYZ = collect_data(duration, Y, Z)
-    print(averageYZ)
+    # averageYZ = collect_data(duration, Y, Z)
+    # print(averageYZ)
     
-    averageZX = collect_data(duration, Z, X)
-    print(averageZX)
+    # averageZX = collect_data(duration, Z, X)
+    # print(averageZX)

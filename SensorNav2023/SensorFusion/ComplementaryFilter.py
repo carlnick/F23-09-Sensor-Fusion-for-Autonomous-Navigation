@@ -31,7 +31,7 @@ class ComplementaryFilter:
         self.qdOrientation = Quaternion()
 
         self.currTime = 0.0
-        self.lastTime = time.time_ns()
+        self.lastTime = time.time()
         self.deltaTime = 0.0
 
         self.predictedGravity = Vector()
@@ -49,9 +49,9 @@ class ComplementaryFilter:
     """
     def predict(self, gyro_data):
         # Here we get the angular rate from the gyroscope
-
+        # print(self.qEstimate)
         # Next we set the delta time
-        self.currTime = time.time_ns()
+        self.currTime = time.time()
         self.deltaTime = self.currTime - self.lastTime
         self.lastTime = self.currTime
 
@@ -102,12 +102,13 @@ class ComplementaryFilter:
     Corrects the predicted quaternion only in the roll and pitch components.
     """
     def correctAcceleration(self, local_frame_acceleration:Vector):
-
+        # print(self.qOrientation)
         # Rotation matrix for inv_pred multiplied by the body frame gravity vector measured by the accelerometer
-        vPredictedGravity = Quaternion.rotateTMultipy(self.qOrientation, local_frame_acceleration)
+        vPredictedGravity = Quaternion.rotateTMultiply(self.qOrientation, local_frame_acceleration)
 
         delta_Accel:Quaternion = Quaternion()
         # initial delta values
+       
         delta_Accel.q0 = math.sqrt((vPredictedGravity.z + 1) / 2)
         delta_Accel.q1 = -1* vPredictedGravity.y / (math.sqrt(2 * (vPredictedGravity.z + 1)))
         delta_Accel.q2 = vPredictedGravity.x / (math.sqrt(2 * (vPredictedGravity.z + 1)))
@@ -135,7 +136,7 @@ class ComplementaryFilter:
     def correctMagneticField(self, magnetometer:Vector):
 
         # Rotation matrix for inv_pred multiplied by the body frame gravity vector measured by the accelerometer
-        vWorldFrameMag = Quaternion.rotateTMultipy(self.qResult, magnetometer)
+        vWorldFrameMag = Quaternion.rotateTMultiply(self.qResult, magnetometer)
         gamma = vWorldFrameMag.x**2 + vWorldFrameMag.y**2
 
         delta_Mag:Quaternion = Quaternion()
@@ -211,9 +212,10 @@ class ComplementaryFilter:
             plt.subplots_adjust(bottom=0.30)
             plt.title('Euler Angles over Time')
             plt.ylabel('Top to bottom: Roll, Pitch, Yaw')
+            return
 
         # Set up plot to call animate() function periodically
-        ani = animation.FuncAnimation(fig, animate, fargs=(xs, ys_r, ys_p, ys_y), interval=1000, blit = True)
+        ani = animation.FuncAnimation(fig, animate, fargs=(xs, ys_r, ys_p, ys_y), interval=1000)
         plt.show()
         
     
@@ -223,16 +225,34 @@ class ComplementaryFilter:
         # roll (x-axis rotation)
         sinr_cosp = 2 * (q.q0 * q.q1 + q.q2 * q.q3)
         cosr_cosp = 1 - 2 * (q.q1 * q.q1 + q.q2 * q.q2)
-        angles.x = math.atan2(sinr_cosp, cosr_cosp)
+        angles.x = math.atan2(sinr_cosp, cosr_cosp) * 180 / math.pi
 
         # pitch (y-axis rotation)
         sinp = math.sqrt(math.fabs(1 + 2 * (q.q0 * q.q2 - q.q1 * q.q3)))
         cosp = math.sqrt(math.fabs(1 - 2 * (q.q0 * q.q2 - q.q1 * q.q3)))
-        angles.y = 2 * math.atan2(sinp, cosp) - math.pi / 2
+        angles.y = (2 * math.atan2(sinp, cosp) - math.pi / 2) * 180 / math.pi
 
         # yaw (z-axis rotation)
         siny_cosp = 2 * (q.q0 * q.q3 + q.q1 * q.q2)
         cosy_cosp = 1 - 2 * (q.q2 * q.q2 + q.q3 * q.q3)
-        angles.z = math.atan2(siny_cosp, cosy_cosp)
+        angles.z = math.atan2(siny_cosp, cosy_cosp) * 180 / math.pi
 
         return angles
+
+    def toAxisAngle(self, q:Quaternion):
+        axis = Vector()
+        if q.q0 > 1:
+            q = q.normalize()
+        
+        angle = 0#2 * math.acos(q.q0)
+        denom = math.sqrt(1- (q.q0 * q.q0))
+        if denom < 0.001:
+            axis.x = q.q1
+            axis.y = q.q2
+            axis.z = q.q3
+        else:
+            axis.x = q.q1 / denom
+            axis.y = q.q2 / denom
+            axis.z = q.q3 / denom
+
+        return axis,angle

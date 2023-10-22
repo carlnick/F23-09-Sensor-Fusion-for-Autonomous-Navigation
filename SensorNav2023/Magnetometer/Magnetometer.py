@@ -8,18 +8,16 @@ import adafruit_tca9548a as multiplexer
 class Magnetometer:
 
     # Magnetometer 0 calibration parameters
-    hard_iron0 = np.array([59.39487654, 5.39098516, -7.68357777])
-    soft_iron0 = [[1.14979637, 0.00569657, 0.00237638],
-                [0.00569657, 1.1964999, -0.01135455],
-                [0.00237638, -0.01135455, 1.19870142]]
-
-
+    hard_iron0 = np.array([48.14984733, 4.19862553, 12.42200051])
+    soft_iron0 =  [[ 1.07950161,  0.00442799,  0.01123515],
+ [ 0.00442799,  1.13734089, -0.00639259],
+ [ 0.01123515, -0.00639259, 1.13929426]]
 
     # Magnetometer 1 calibration parameters
-    hard_iron1 = np.array([-167.74038797, 24.09046639, -96.88056222])
-    soft_iron1 = [[1.11254552, 0.02645651, 0.02254459],
-                [0.02645651, 1.14822925, 0.00176098],
-                [0.02254459, 0.00176098, 1.0770171]]
+    hard_iron1 = np.array([-126.8371323, 27.5346779, -57.45631552])
+    soft_iron1 =  [[ 1.06527986e+00,  2.06713210e-02, -1.02658230e-03],
+ [ 2.06713210e-02,  1.08899968e+00, -8.31700341e-05],
+ [-1.02658230e-03,-8.31700341e-05,  1.00621202e+00]]
 
 
     # Magnetometer 2 calibration parameters
@@ -81,14 +79,20 @@ class Magnetometer:
         cal_mag0 = Magnetometer.__apply_calibration(mag_0, Magnetometer.hard_iron0, Magnetometer.soft_iron0)
         cal_mag1 = Magnetometer.__apply_calibration(mag_1, Magnetometer.hard_iron1, Magnetometer.soft_iron1)
         cal_mag2 = Magnetometer.__apply_calibration(mag_2, Magnetometer.hard_iron2, Magnetometer.soft_iron2)
+
+        print("Mag 0: ", cal_mag0[0], cal_mag0[1], cal_mag0[2])
+        print("Mag 1: ", cal_mag1[0], cal_mag1[1], cal_mag1[2])
+        print("Mag 2: ", cal_mag2[0], cal_mag2[1], cal_mag2[2])
+        print("__________________________________")
         
         threshold = 7.0
         
         return Magnetometer.__mag_voting(cal_mag0, cal_mag1, cal_mag2, threshold)
     
     # get the heading of the magnetic field data (x is the heading/north)
-    def get_heading(self, mag_data, axis1, axis2):
-        heading = -1* (np.arctan2(mag_data[axis1], mag_data[axis2]) * 180) / np.pi
+    def get_heading(self, mag_data, axis1, axis2):     
+        heading = (np.arctan2(mag_data[axis1], mag_data[axis2]) * 180) / np.pi
+       
         if(heading < 0):
             heading += 360
 
@@ -98,4 +102,5 @@ if __name__ == "__main__":
     mag = Magnetometer()
     while(1):
         mag_data = mag.get_magnetic()
-        print(mag.get_heading(mag_data, 0, 1))
+        #print(mag.get_heading(mag_data, 2, 0))
+        

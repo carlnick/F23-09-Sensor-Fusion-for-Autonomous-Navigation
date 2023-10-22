@@ -131,27 +131,28 @@ class Quaternion:
         else:
             raise TypeError("Only Quaternion or Numeric literals for operand types are allowed.")
 
-    def __rmul__(self, other):
-        if isinstance(other, Quaternion):
-            q0 = (self.q0 * other.q0) - (self.q1 * other.q1) - (self.q2 * other.q2) - (self.q3 * other.q3)
-            q1 = (self.q0 * other.q1) + (self.q1 * other.q0) + (self.q2 * other.q3) - (self.q3 * other.q2)
-            q2 = (self.q0 * other.q2) - (self.q1 * other.q3) + (self.q2 * other.q0) + (self.q3 * other.q1)
-            q3 = (self.q0 * other.q3) + (self.q1 * other.q2) - (self.q2 * other.q1) + (self.q3 * other.q0)
+    __rmul__ = __mul__
+    # def __rmul__(self, other):
+    #     if isinstance(other, Quaternion):
+    #         q0 = (self.q0 * other.q0) - (self.q1 * other.q1) - (self.q2 * other.q2) - (self.q3 * other.q3)
+    #         q1 = (self.q0 * other.q1) + (self.q1 * other.q0) + (self.q2 * other.q3) - (self.q3 * other.q2)
+    #         q2 = (self.q0 * other.q2) - (self.q1 * other.q3) + (self.q2 * other.q0) + (self.q3 * other.q1)
+    #         q3 = (self.q0 * other.q3) + (self.q1 * other.q2) - (self.q2 * other.q1) + (self.q3 * other.q0)
 
-            return Quaternion(q0, q1, q2, q3)
+    #         return Quaternion(q0, q1, q2, q3)
         
-        if isinstance(other, (float, int)):
-            return Quaternion(self.q0 * other, self.q1 * other, self.q2 * other, self.q3 * other)
+    #     if isinstance(other, (float, int)):
+    #         return Quaternion(self.q0 * other, self.q1 * other, self.q2 * other, self.q3 * other)
         
-        if isinstance(other, Vector):
-            q0 = -(self.q1 * other.x) - (self.q2 * other.y) - (self.q3 * other.z)
-            q1 = (self.q0 * other.x) + (self.q2 * other.z) - (self.q3 * other.y)
-            q2 = (self.q0 * other.y) - (self.q1 * other.z) + (self.q3 * other.x)
-            q3 = (self.q0 * other.z) + (self.q1 * other.y) - (self.q2 * other.x)
+    #     if isinstance(other, Vector):
+    #         q0 = -(self.q1 * other.x) - (self.q2 * other.y) - (self.q3 * other.z)
+    #         q1 = (self.q0 * other.x) + (self.q2 * other.z) - (self.q3 * other.y)
+    #         q2 = (self.q0 * other.y) - (self.q1 * other.z) + (self.q3 * other.x)
+    #         q3 = (self.q0 * other.z) + (self.q1 * other.y) - (self.q2 * other.x)
 
-            return Quaternion(q0, q1, q2, q3)
-        else:
-            raise TypeError("Only Quaternion or Numeric literals for operand types are allowed.")
+    #         return Quaternion(q0, q1, q2, q3)
+    #     else:
+    #         raise TypeError("Only Quaternion or Numeric literals for operand types are allowed.")
 
     def __str__(self):
         return "[%.8f, %.8f, %.8f, %.8f]" % (self.q0, self.q1, self.q2, self.q3)
