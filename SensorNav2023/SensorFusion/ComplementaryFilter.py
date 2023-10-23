@@ -241,8 +241,7 @@ class ComplementaryFilter:
 
     def toAxisAngle(self, q:Quaternion):
         axis = Vector()
-        if q.q0 > 1:
-            q = q.normalize()
+        q = q.normalize()
         
         angle = 0#2 * math.acos(q.q0)
         denom = math.sqrt(1- (q.q0 * q.q0))
