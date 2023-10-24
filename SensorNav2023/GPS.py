@@ -3,6 +3,9 @@ import adafruit_gps
 import adafruit_tca9548a
 import time
 from typing import Literal
+from math import pi
+
+EARTH_RADIUS_METERS = 6371000
 
 # GPS initialization commands
 GGA_RMC_COMMAND = b"PMTK314,0,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0"
@@ -38,8 +41,14 @@ class GPS:
         # send update rate command according to update rate
         self.GPS.send_command(UPDATE_RATE_COMMAND + str(update_rate_ms).encode())
 
+        # initialize GPS position in degrees
+        self.position_degrees = None
+
         # get GPS fix
         self._get_fix()
+
+        # get initial GPS position
+        self._get_initial_position()
 
     def _get_fix(self) -> bool:
         """
@@ -61,19 +70,30 @@ class GPS:
 
         return attempt_count < GPS_FIX_ATTEMPT_LIMIT
 
-    def get_position(self):
+    def get_position_meters(self):
         """
-        Gets the current GPS position
-        :return: If the GPS has a fix, a list containing the GPS position in the following order:
-        [latitude (deg), longitude (deg), altitude (m)]. Otherwise, None
+        Gets the current GPS position in meters relative to the first GPS reading
+
+        :return:
         """
-        # update GPS
-        self.GPS.update()
 
-        # make sure GPS has fix
-        if not self._get_fix():
-            return None
+        self._get_fix()
 
-        # get position as list: [latitude, longitude, altitude]
-        position = [self.GPS.latitude, self.GPS.longitude, self.GPS.altitude_m]
-        return position
+        current_position = [self.GPS.latitude, self.GPS.longitude, self.GPS.altitude_m]
+
+        latitude_difference = current_position[0] - self.position_degrees[0]
+        longitude_difference = current_position[1] - self.position_degrees[1]
+        altitude_difference = current_position[2] - self.position_degrees[2]
+
+        x_difference = self._deg_to_m(latitude_difference)
+        y_difference = self._deg_to_m(longitude_difference)
+        z_difference = altitude_difference
+
+        return [x_difference, y_difference, z_difference]
+
+    def _get_initial_position(self):
+        self.position_degrees = [self.GPS.latitude, self.GPS.longitude, self.GPS.altitude_m]
+        return self.position_degrees
+
+    def _deg_to_m(self, deg):
+        return (2.0 * pi * EARTH_RADIUS_METERS * deg) / 360.0
