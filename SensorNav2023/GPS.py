@@ -72,11 +72,9 @@ class GPS:
 
     def get_position_meters(self):
         """
-        Gets the current GPS position in meters relative to the first GPS reading
-
-        :return:
+        Gets the difference between the current GPS position and the initial GPS position (in meters)
+        :return: The difference between the current GPS position and the initial GPS position as a list [x, y, z]
         """
-
         self._get_fix()
 
         current_position = [self.GPS.latitude, self.GPS.longitude, self.GPS.altitude_m]
@@ -92,6 +90,7 @@ class GPS:
         return [x_difference, y_difference, z_difference]
 
     def _get_initial_position(self):
+        self._get_fix()
         self.position_degrees = [self.GPS.latitude, self.GPS.longitude, self.GPS.altitude_m]
         return self.position_degrees
 
