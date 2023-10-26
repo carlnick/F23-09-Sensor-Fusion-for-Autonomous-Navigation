@@ -3,6 +3,7 @@ from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 import numpy as np
+import math
 
 fig = plt.figure()
 ax = fig.add_subplot(111, projection='3d')
@@ -15,15 +16,32 @@ def animate(i):
     ax.clear()
     hold = [x.strip() for x in in_file.readline().split(',')]
     vector:np.array = [hold[0][1:],hold[1],hold[2][:-1]]
-    x = np.random.randn(3)  # take a random vector
-    x -= x.dot(vector) * vector / np.linalg.norm(vector)**2
-    x /= np.linalg.norm(x)  # normalize it
-    y = np.cross(vector, x)      # cross product with k
 
-    ax.quiver(0,0,0,vector[0],vector[1],vector[2])
-    ax.quiver(0,0,0,x[0],x[1],x[2])
-    ax.quiver(0,0,0,y[0],y[1],y[2])
-    print(vector[0]+ ',' + vector[1] + ',' + vector[2])
+    for i in range(0,3):
+        vector[i] = float(vector[i])
+
+    angle = float(in_file.readline())
+
+    x = np.array([1.0,0.0,0.0])  # take a random vector
+    x[0] = x[0] + math.cos(angle) * math.sqrt(2)
+    x[1] = x[1] + math.sin(angle) * math.sqrt(2)
+    # x[0] = x[0] + math.sqrt(2) * math.cos(angle)
+    dot_prod = np.dot(x,vector)
+    for i in range(0,3):
+        x[i] = x[i] - ((dot_prod * vector[i]) / np.linalg.norm(vector)**2)
+    x = x / np.linalg.norm(x)  # normalize it
+    y = np.cross(vector, x)      # cross product with k
+    # x[0] = x[0] + math.cos(angle) * math.sqrt(2)
+    # x[1] = x[1] + math.sin(angle) * math.sqrt(2)
+    # y[0] = y[0] - math.sin(angle) * math.sqrt(2)
+    # y[1] = y[1] - math.cos(angle) * math.sqrt(2)
+    # print(vector)
+    # print(x)
+    # print(y)
+
+    vec1 = ax.quiver(0,0,0,vector[0],vector[1],vector[2])
+    vec2 = ax.quiver(0,0,0,x[0],x[1],x[2])
+    vec3 = ax.quiver(0,0,0,y[0],y[1],y[2])
 
     # Draw x and y lists
     ax.set_xlim([-2,2])
@@ -35,7 +53,7 @@ def animate(i):
     # plt.subplots_adjust(bottom=0.30)
     plt.title('Axis Angle Representation over Time')
     # plt.ylabel('Top to bottom: Roll, Pitch, Yaw')
-    return
+    return vec1, vec2, vec3
 # Set up plot to call animate() function periodically
-ani = animation.FuncAnimation(fig, animate, blit=True)
+ani = animation.FuncAnimation(fig, animate)
 plt.show()

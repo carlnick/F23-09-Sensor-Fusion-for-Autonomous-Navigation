@@ -243,7 +243,7 @@ class ComplementaryFilter:
         axis = Vector()
         q = q.normalize()
         
-        angle = 0#2 * math.acos(q.q0)
+        angle = 2 * math.acos(q.q0)
         denom = math.sqrt(1- (q.q0 * q.q0))
         if denom < 0.001:
             axis.x = q.q1

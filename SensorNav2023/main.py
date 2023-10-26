@@ -131,6 +131,8 @@ if __name__ == "__main__":
             axis, angle = compFilter.toAxisAngle(compFilter.qResult)
             out_file.write(axis.__str__())
             out_file.write('\n')
+            out_file.write(str(angle))
+            out_file.write('\n')
             dataCount = dataCount + 1
         else: 
             out_file.close()
