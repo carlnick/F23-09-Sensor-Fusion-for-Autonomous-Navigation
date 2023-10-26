@@ -156,6 +156,7 @@ class Magnetometer(object):
     ax.scatter(result[:,0], result[:,1], color='r', label='X VS Y')
     ax.scatter(result[:,1], result[:,2], color='g', label='Y VS Z')
     ax.scatter(result[:,2], result[:,0], color='b', label='Z VS X')
+    ax.legend()
     plt.show()
     
     print("First 5 rows calibrated:\n", result[:5])
