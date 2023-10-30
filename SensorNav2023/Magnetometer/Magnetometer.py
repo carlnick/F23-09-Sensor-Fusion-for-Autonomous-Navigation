@@ -80,10 +80,10 @@ class Magnetometer:
         cal_mag1 = Magnetometer.__apply_calibration(mag_1, Magnetometer.hard_iron1, Magnetometer.soft_iron1)
         cal_mag2 = Magnetometer.__apply_calibration(mag_2, Magnetometer.hard_iron2, Magnetometer.soft_iron2)
 
-        print("Mag 0: ", cal_mag0[0], cal_mag0[1], cal_mag0[2])
-        print("Mag 1: ", cal_mag1[0], cal_mag1[1], cal_mag1[2])
-        print("Mag 2: ", cal_mag2[0], cal_mag2[1], cal_mag2[2])
-        print("__________________________________")
+        # print("Mag 0: ", cal_mag0[0], cal_mag0[1], cal_mag0[2])
+        # print("Mag 1: ", cal_mag1[0], cal_mag1[1], cal_mag1[2])
+        # print("Mag 2: ", cal_mag2[0], cal_mag2[1], cal_mag2[2])
+        # print("__________________________________")
         
         threshold = 7.0
         

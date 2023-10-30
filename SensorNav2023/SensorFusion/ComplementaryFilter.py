@@ -237,6 +237,9 @@ class ComplementaryFilter:
         cosy_cosp = 1 - 2 * (q.q2 * q.q2 + q.q3 * q.q3)
         angles.z = math.atan2(siny_cosp, cosy_cosp) * 180 / math.pi
 
+        if(angles.z < 0):
+            angles.z += 360
+
         return angles
 
     def toAxisAngle(self, q:Quaternion):
