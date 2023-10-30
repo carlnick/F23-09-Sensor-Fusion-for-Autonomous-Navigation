@@ -129,6 +129,8 @@ if __name__ == "__main__":
 
         # Correction Step
         compFilter.correctOrientation(vNormAccel, vNormMag)
+
+        
         position, velocity = currentPositionVelocity(vAccelerometer, compFilter.qResult, velocity, position, compFilter.deltaTime)
         # print(position)
 
