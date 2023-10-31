@@ -8,6 +8,8 @@ import datetime as dt
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 import sys
+import time
+
 # MAIN PROGRAM
 if __name__ == "__main__":
 
@@ -120,6 +122,8 @@ if __name__ == "__main__":
         vGyroscope.y = imu.get_gyroscope('y')
         vGyroscope.z = imu.get_gyroscope('z')
 
+        compFilter.currTime = time.time()
+
         # Normalize vectors for orientation sensor fusion
         vNormAccel = vAccelerometer.normalize()
         vNormMag = vMagnetometer.normalize()
@@ -130,28 +134,30 @@ if __name__ == "__main__":
         # Correction Step
         compFilter.correctOrientation(vNormAccel, vNormMag)
 
-        
+
         position, velocity = currentPositionVelocity(vAccelerometer, compFilter.qResult, velocity, position, compFilter.deltaTime)
-        # print(position)
+        print(position)
 
         # Obtain Corrected Orientation
         # compFilter.graphResult()
-        #if dataCount < 500:
-         #   axis, angle = compFilter.toAxisAngle(compFilter.qResult)
-          #  out_file.write(axis.__str__())
-           # out_file.write('\n')
-            #out_file.write(str(angle))
-            #out_file.write('\n')
-            #dataCount = dataCount + 1
-        #else: 
-            #out_file.close()
-            #sys.exit(0)
-        euler = compFilter.toEuler(compFilter.qResult)
-        roll = round(euler.x, 2)
-        pitch = round(euler.y, 2)
-        yaw = round(euler.z, 2)
+        if dataCount < 150:
+            axis, angle = compFilter.toAxisAngle(compFilter.qResult)
+            out_file.write(axis.__str__())
+            out_file.write('\n')
+            out_file.write(str(angle))
+            out_file.write('\n')
+            dataCount = dataCount + 1
+        else: 
+            out_file.close()
+            sys.exit(0)
+
+
+        # euler = compFilter.toEuler(compFilter.qResult)
+        # roll = round(euler.x, 2)
+        # pitch = round(euler.y, 2)
+        # yaw = round(euler.z, 2)
         
-        print(f"Roll: {roll}, Pitch: {pitch}, Yaw: {yaw}")
+        # print(f"Roll: {roll}, Pitch: {pitch}, Yaw: {yaw}")
         
         # print(compFilter.toEuler(compFilter.qResult))
         # print(compFilter.qResult)

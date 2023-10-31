@@ -35,7 +35,7 @@ class ComplementaryFilter:
         self.deltaTime = 0.0
 
         self.predictedGravity = Vector()
-        self.epsilon = 0.9
+        self.epsilon = 0.95
         self.alpha_const = 0.7
         self.unit_quat = Quaternion(1,0,0,0)
 
@@ -51,7 +51,7 @@ class ComplementaryFilter:
         # Here we get the angular rate from the gyroscope
         # print(self.qEstimate)
         # Next we set the delta time
-        self.currTime = time.time()
+        # self.currTime = time.time()
         self.deltaTime = self.currTime - self.lastTime
         self.lastTime = self.currTime
 
@@ -116,17 +116,17 @@ class ComplementaryFilter:
         # compute alpha weight
         weight = self.alpha_const #* self.compute_alpha(local_frame_acceleration)
         # complete LERP or SLERP
-        if delta_Accel.q0 > self.epsilon:
-            lerp_quat = (1- weight) * self.unit_quat + weight * delta_Accel
-            lerp_quat = lerp_quat.normalize()
-            self.qResult = self.qOrientation * lerp_quat
-        else:  
-            # in progress
-            qIdentity = Quaternion()
-            angle = math.acos(delta_Accel.dot(qIdentity))
+        # delta_Accel.q0 > self.epsilon:
+        lerp_quat = (1- weight) * self.unit_quat + weight * delta_Accel
+        lerp_quat = lerp_quat.normalize()
+        self.qResult = self.qOrientation * lerp_quat
+        #else:  
+        #    # in progress
+        #    qIdentity = Quaternion()
+        #    angle = math.acos(delta_Accel.dot(qIdentity))
 
-            slerp_quat =(math.sin((1 - weight) * angle) / math.sin(angle)) * qIdentity + (math.sin(weight * angle) / math.sin(angle)) * delta_Accel
-            self.qResult = self.qOrientation * slerp_quat
+        #    slerp_quat =(math.sin((1 - weight) * angle) / math.sin(angle)) * qIdentity + (math.sin(weight * angle) / math.sin(angle)) * delta_Accel
+        #    self.qResult = self.qOrientation * slerp_quat
 
     """
     Magnetometer-Based Correction.
@@ -148,17 +148,17 @@ class ComplementaryFilter:
         # compute alpha weight
         weight = self.alpha_const #* self.compute_alpha(local_frame_acceleration)
         # complete LERP or SLERP
-        if delta_Mag.q0 > self.epsilon:
-            lerp_quat = (1- weight) * self.unit_quat + weight * delta_Mag
-            lerp_quat = lerp_quat.normalize()
-            self.qResult = self.qResult * lerp_quat
-        else:  
+        #if delta_Mag.q0 > self.epsilon:
+        lerp_quat = (1- weight) * self.unit_quat + weight * delta_Mag
+        lerp_quat = lerp_quat.normalize()
+        self.qResult = self.qResult * lerp_quat
+        #else:  
             # in progress
-            qIdentity = Quaternion()
-            angle = math.acos(delta_Mag.dot(qIdentity))
+         #   qIdentity = Quaternion()
+         #   angle = math.acos(delta_Mag.dot(qIdentity))
 
-            slerp_quat =(math.sin((1 - weight) * angle) / math.sin(angle)) * qIdentity + (math.sin(weight * angle) / math.sin(angle)) * delta_Mag
-            self.qResult = self.qResult * slerp_quat
+         #   slerp_quat =(math.sin((1 - weight) * angle) / math.sin(angle)) * qIdentity + (math.sin(weight * angle) / math.sin(angle)) * delta_Mag
+         #   self.qResult = self.qResult * slerp_quat
 
     """
     Correction step.
@@ -215,7 +215,7 @@ class ComplementaryFilter:
             return
 
         # Set up plot to call animate() function periodically
-        ani = animation.FuncAnimation(fig, animate, fargs=(xs, ys_r, ys_p, ys_y), interval=1000)
+        ani = animation.FuncAnimation(fig, animate, fargs=(xs, ys_r, ys_p, ys_y), interval=0.1)
         plt.show()
         
     
