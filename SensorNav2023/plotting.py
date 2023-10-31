@@ -22,8 +22,8 @@ def animate(i):
 
     angle = float(in_file.readline())
 
-    x = np.array([1.0,0.0,0.0])  # take a random vector
-    x[0] = x[0] + math.cos(angle) * math.sqrt(2)
+    x = np.array([1.0,0.0,0.0])  # take a unit x vector
+    x[0] = x[0] + math.cos(angle) * math.sqrt(2) #x and y adjustment from angle
     x[1] = x[1] + math.sin(angle) * math.sqrt(2)
     # x[0] = x[0] + math.sqrt(2) * math.cos(angle)
     dot_prod = np.dot(x,vector)
@@ -39,9 +39,9 @@ def animate(i):
     # print(x)
     # print(y)
 
-    vec1 = ax.quiver(0,0,0,vector[0],vector[1],vector[2])
-    vec2 = ax.quiver(0,0,0,x[0],x[1],x[2])
-    vec3 = ax.quiver(0,0,0,y[0],y[1],y[2])
+    vec1 = ax.quiver(0,0,0,vector[0],vector[1],vector[2],color='blue')
+    vec2 = ax.quiver(0,0,0,x[0],x[1],x[2],color='red')
+    vec3 = ax.quiver(0,0,0,y[0],y[1],y[2],color='green')
 
     # Draw x and y lists
     ax.set_xlim([-2,2])
