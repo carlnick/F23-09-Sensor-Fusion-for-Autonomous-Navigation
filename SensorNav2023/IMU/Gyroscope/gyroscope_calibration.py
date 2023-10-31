@@ -44,6 +44,10 @@ if __name__ == "__main__":
 
     sensors = initialize_sensors()
 
+    print("Prepare to start rotating around the x-axis")
+    time.sleep(10)
+    print("Start rotating")
+
     for axis in range(0, 3):
         data = collect_data(axis, sensors)
         imu0_rotation = np.rad2deg(np.trapz(data[0], dx=timestep))
@@ -53,8 +57,11 @@ if __name__ == "__main__":
         print(f"IMU 0 rotation in axis {axis}: {imu0_rotation} degrees")
         print(f"IMU 1 rotation in axis {axis}: {imu1_rotation} degrees")
         print(f"IMU 2 rotation in axis {axis}: {imu2_rotation} degrees")
-        if axis == 2:
+        if axis == 0:
+            print("Prepare to start rotating around the y-axis")
+        elif axis == 1:
+            print("Prepare to start rotating around the z-axis")
+        else:
             break
-        print("Prepare to start rotating around next axis")
         time.sleep(10)
         print("Start rotating")
