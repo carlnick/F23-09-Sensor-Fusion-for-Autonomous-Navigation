@@ -36,7 +36,7 @@ class ComplementaryFilter:
 
         self.predictedGravity = Vector()
         self.epsilon = 0.95
-        self.alpha_const = 0.7
+        self.alpha_const = 0.5
         self.unit_quat = Quaternion(1,0,0,0)
 
         self.qResult = Quaternion()
@@ -61,9 +61,13 @@ class ComplementaryFilter:
 
         # Calculate this time instant's derivative of the orientation
         self.qdOrientation = -1/2 * self.qPureAngular * self.qEstimate
+        # print(self.qPureAngular)
+        # print(self.qEstimate)
+        print()
 
         # Integrate the derivative of the orientation
         self.qOrientation = self.qEstimate + (self.qdOrientation * self.deltaTime)
+        
 
     #! A Quick Note about correction:
     """
@@ -105,6 +109,8 @@ class ComplementaryFilter:
         # print(self.qOrientation)
         # Rotation matrix for inv_pred multiplied by the body frame gravity vector measured by the accelerometer
         vPredictedGravity = Quaternion.rotateTMultiply(self.qOrientation, local_frame_acceleration)
+        
+        # print(vPredictedGravity)
 
         delta_Accel:Quaternion = Quaternion()
         # initial delta values
@@ -116,17 +122,27 @@ class ComplementaryFilter:
         # compute alpha weight
         weight = self.alpha_const #* self.compute_alpha(local_frame_acceleration)
         # complete LERP or SLERP
-        # delta_Accel.q0 > self.epsilon:
-        lerp_quat = (1- weight) * self.unit_quat + weight * delta_Accel
-        lerp_quat = lerp_quat.normalize()
-        self.qResult = self.qOrientation * lerp_quat
-        #else:  
-        #    # in progress
-        #    qIdentity = Quaternion()
-        #    angle = math.acos(delta_Accel.dot(qIdentity))
+        if delta_Accel.q0 > self.epsilon:
+            lerp_quat = (1- weight) * self.unit_quat + weight * delta_Accel
+            lerp_quat = lerp_quat.normalize()
+            print("lerp")
+            print(lerp_quat)
+            print("Result before accel lerp")
+            print(self.qResult)
+            self.qResult = self.qOrientation * lerp_quat
+        else:  
+            # in progress
+            qIdentity = Quaternion()
+            angle = math.acos(delta_Accel.q0)
 
-        #    slerp_quat =(math.sin((1 - weight) * angle) / math.sin(angle)) * qIdentity + (math.sin(weight * angle) / math.sin(angle)) * delta_Accel
-        #    self.qResult = self.qOrientation * slerp_quat
+            slerp_quat =(math.sin((1 - weight) * angle) / math.sin(angle)) * qIdentity + (math.sin(weight * angle) / math.sin(angle)) * delta_Accel
+            print("slerp")
+            print(slerp_quat)
+            print("Result before accel slerp")
+            print(self.qResult)
+            self.qResult = self.qOrientation * slerp_quat
+        print("Result after accel Lerp/Slerp")
+        print(self.qResult)
 
     """
     Magnetometer-Based Correction.
@@ -148,17 +164,27 @@ class ComplementaryFilter:
         # compute alpha weight
         weight = self.alpha_const #* self.compute_alpha(local_frame_acceleration)
         # complete LERP or SLERP
-        #if delta_Mag.q0 > self.epsilon:
-        lerp_quat = (1- weight) * self.unit_quat + weight * delta_Mag
-        lerp_quat = lerp_quat.normalize()
-        self.qResult = self.qResult * lerp_quat
-        #else:  
+        if delta_Mag.q0 > self.epsilon:
+            lerp_quat = (1- weight) * self.unit_quat + weight * delta_Mag
+            lerp_quat = lerp_quat.normalize()
+            print("lerp")
+            print(lerp_quat)
+            print("Result before mag lerp")
+            print(self.qResult)
+            self.qResult = self.qResult * lerp_quat
+        else:  
             # in progress
-         #   qIdentity = Quaternion()
-         #   angle = math.acos(delta_Mag.dot(qIdentity))
+            qIdentity = Quaternion()
+            angle = math.acos(delta_Mag.q0)
 
-         #   slerp_quat =(math.sin((1 - weight) * angle) / math.sin(angle)) * qIdentity + (math.sin(weight * angle) / math.sin(angle)) * delta_Mag
-         #   self.qResult = self.qResult * slerp_quat
+            slerp_quat =(math.sin((1 - weight) * angle) / math.sin(angle)) * qIdentity + (math.sin(weight * angle) / math.sin(angle)) * delta_Mag
+            print("slerp")
+            print(slerp_quat)
+            print("Result before mag slerp")
+            print(self.qResult)
+            self.qResult = self.qResult * slerp_quat
+        print("Result after mag lerp/slerp")
+        print(self.qResult)
 
     """
     Correction step.
