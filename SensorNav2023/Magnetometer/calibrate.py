@@ -70,7 +70,7 @@ class Magnetometer(object):
   def run(self):
     i2c = board.I2C()
     mux = multiplexer.TCA9548A(i2c)
-    sensor = magnetometer.MMC5603(mux[6])
+    sensor = magnetometer.MMC5603(mux[0])
     
     # Deque for axes
     mag_x = []

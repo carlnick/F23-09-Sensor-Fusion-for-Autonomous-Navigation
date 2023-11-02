@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 import sys
 import time
+import numpy
 
 # MAIN PROGRAM
 if __name__ == "__main__":
@@ -22,6 +23,9 @@ if __name__ == "__main__":
 
     # Initialize Gyroscope Vector
     vGyroscope = Vector(*imu.get_gyroscope_all())
+    vGyroscope.x = vGyroscope.x
+    vGyroscope.y = vGyroscope.y
+    vGyroscope.z = vGyroscope.z
 
     # Initialize Magnetometer Vector
     vMagnetometer = Vector(*mag.get_magnetic())
@@ -118,9 +122,12 @@ if __name__ == "__main__":
 
         vMagnetometer.set(*mag.get_magnetic())
 
+
         vGyroscope.x = imu.get_gyroscope('x')
         vGyroscope.y = imu.get_gyroscope('y')
         vGyroscope.z = imu.get_gyroscope('z')
+        
+        
 
         compFilter.currTime = time.time()
 
@@ -130,34 +137,36 @@ if __name__ == "__main__":
 
         # Prediction Step
         compFilter.predict(vGyroscope)
+        
+        print(compFilter.qOrientation)
 
         # Correction Step
         compFilter.correctOrientation(vNormAccel, vNormMag)
 
 
         position, velocity = currentPositionVelocity(vAccelerometer, compFilter.qResult, velocity, position, compFilter.deltaTime)
-        print(position)
+        # print(position)
 
         # Obtain Corrected Orientation
         # compFilter.graphResult()
-        if dataCount < 150:
-            axis, angle = compFilter.toAxisAngle(compFilter.qResult)
-            out_file.write(axis.__str__())
-            out_file.write('\n')
-            out_file.write(str(angle))
-            out_file.write('\n')
-            dataCount = dataCount + 1
-        else: 
-            out_file.close()
-            sys.exit(0)
+        # ~ if dataCount < 150:
+            # ~ axis, angle = compFilter.toAxisAngle(compFilter.qResult)
+            # ~ out_file.write(axis.__str__())
+            # out_file.write('\n')
+            # out_file.write(str(angle))
+            # out_file.write('\n')
+            # dataCount = dataCount + 1
+        # else: 
+            # out_file.close()
+            # sys.exit(0)
 
-
-        # euler = compFilter.toEuler(compFilter.qResult)
-        # roll = round(euler.x, 2)
-        # pitch = round(euler.y, 2)
-        # yaw = round(euler.z, 2)
+        print(compFilter.qResult)
+        euler = compFilter.toEuler(compFilter.qResult)
+        roll = round(euler.x, 2)
+        pitch = round(euler.y, 2)
+        yaw = round(euler.z, 2)
         
-        # print(f"Roll: {roll}, Pitch: {pitch}, Yaw: {yaw}")
+        print(f"Roll: {roll}, Pitch: {pitch}, Yaw: {yaw}")
         
         # print(compFilter.toEuler(compFilter.qResult))
         # print(compFilter.qResult)
