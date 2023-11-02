@@ -70,4 +70,7 @@ if __name__ == '__main__':
     imu2_calibration_matrix = get_calibration_matrix(imu2_raw, gravity_matrix)
 
     print("Calibration complete, paste this into the top of the IMU class:")
-    print(f"ACM = [{imu0_calibration_matrix}, {imu1_calibration_matrix}, {imu2_calibration_matrix}]")
+
+    print(f"ACM = [{numpy.array2string(imu0_calibration_matrix)}, "
+          f"{numpy.array2string(imu1_calibration_matrix)}, "
+          f"{numpy.array2string(imu2_calibration_matrix)}]")
