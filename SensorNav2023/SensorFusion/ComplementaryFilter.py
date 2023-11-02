@@ -1,9 +1,11 @@
 from SensorFusion.Quaternion import Quaternion
 from SensorFusion.Vector import Vector
+from IMU.IMU import IMU
+from Magnetometer.Magnetometer import Magnetometer
 import time
 import math
 
-
+import numpy as np
 import datetime as dt
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
@@ -198,52 +200,79 @@ class ComplementaryFilter:
         self.correctMagneticField(magnetometer)
         self.qEstimate = self.qResult
 
-    def graphResult(self):
-        roll_pitch_yaw:Vector = self.toEuler(self.qResult)
-        # Create figure for plotting
+    def graphResult(self, imu, mag, vAcc, vGyro, vMag):
+        
         fig = plt.figure()
-        ar = fig.add_subplot(3, 1, 1)
-        ap = fig.add_subplot(3, 1, 2)
-        ay = fig.add_subplot(3, 1, 3)
-        xs = []
-        ys_r = []
-        ys_p = []
-        ys_y = []
+        ax = fig.add_subplot(111, projection='3d')
+        
+        def animate(i):
+            # read file and draw vectors using quiver
+            # all start at 0,0,0
+            ax.clear()
+            
+            vAcc.x = imu.get_acceleration('x')
+            vAcc.y = imu.get_acceleration('y')
+            vAcc.z = imu.get_acceleration('z')
 
-        # This function is called periodically from FuncAnimation
-        def animate(i, xs, ys_r, ys_p, ys_y):
+            vMag.set(*mag.get_magnetic())
 
-            # Add x and y to lists
-            xs.append(dt.datetime.now().strftime('%H:%M:%S.%f'))
-            ys_r.append(roll_pitch_yaw.x)
-            ys_p.append(roll_pitch_yaw.y)
-            ys_y.append(roll_pitch_yaw.z)
 
-            # Limit x and y lists to 20 items
-            xs = xs[-20:]
-            ys_r = ys_r[-20:]
-            ys_p = ys_p[-20:]
-            ys_y = ys_y[-20:]
+            vGyro.x = imu.get_gyroscope('x')
+            vGyro.y = imu.get_gyroscope('y')
+            vGyro.z = imu.get_gyroscope('z')
+            
+            self.currTime = time.time()
+
+            # Normalize vectors for orientation sensor fusion
+            vNormAccel = vAcc.normalize()
+            vNormMag = vMag.normalize()
+
+            # Prediction Step
+            self.predict(vGyro)
+
+            # Correction Step
+            self.correctOrientation(vNormAccel, vNormMag)
+                    
+            vector, angle = self.toAxisAngle(self.qResult)
+            
+            for i in range(0,3):
+                vector[i] = float(vector[i])
+
+            x = np.array([1.0,0.0,0.0])  # take a unit x vector
+            x[0] = x[0] + math.cos(angle) * math.sqrt(2) #x and y adjustment from angle
+            x[1] = x[1] + math.sin(angle) * math.sqrt(2)
+            # x[0] = x[0] + math.sqrt(2) * math.cos(angle)
+            dot_prod = np.dot(x,vector)
+            for i in range(0,3):
+                x[i] = x[i] - ((dot_prod * vector[i]) / np.linalg.norm(vector)**2)
+            x = x / np.linalg.norm(x)  # normalize it
+            y = np.cross(vector, x)      # cross product with k
+            # x[0] = x[0] + math.cos(angle) * math.sqrt(2)
+            # x[1] = x[1] + math.sin(angle) * math.sqrt(2)
+            # y[0] = y[0] - math.sin(angle) * math.sqrt(2)
+            # y[1] = y[1] - math.cos(angle) * math.sqrt(2)
+            # print(vector)
+            # print(x)
+            # print(y)
+
+            vec1 = ax.quiver(0,0,0,vector[0],vector[1],vector[2],color='blue')
+            vec2 = ax.quiver(0,0,0,x[0],x[1],x[2],color='red')
+            vec3 = ax.quiver(0,0,0,y[0],y[1],y[2],color='green')
 
             # Draw x and y lists
-            ar.clear()
-            ar.plot(xs, ys_r)
-            ap.clear()
-            ap.plot(xs, ys_p)
-            ay.clear()
-            ay.plot(xs, ys_y)
+            ax.set_xlim([-2,2])
+            ax.set_ylim([-2,2])
+            ax.set_zlim([-2,2])
 
             # Format plot
-            plt.xticks(rotation=45, ha='right')
-            plt.subplots_adjust(bottom=0.30)
-            plt.title('Euler Angles over Time')
-            plt.ylabel('Top to bottom: Roll, Pitch, Yaw')
-            return
-
+            # plt.xticks(rotation=45, ha='right')
+            # plt.subplots_adjust(bottom=0.30)
+            plt.title('Axis Angle Representation over Time')
+            # plt.ylabel('Top to bottom: Roll, Pitch, Yaw')
+            return vec1, vec2, vec3
         # Set up plot to call animate() function periodically
-        ani = animation.FuncAnimation(fig, animate, fargs=(xs, ys_r, ys_p, ys_y), interval=0.1)
+        ani = animation.FuncAnimation(fig, animate)
         plt.show()
-        
     
     def toEuler(self, q:Quaternion):
         angles = Vector()

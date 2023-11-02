@@ -45,8 +45,11 @@ if __name__ == "__main__":
     position = Vector(0, 0, 0)
     velocity = Vector(0, 0, 0)
 
+    compFilter.graphResult(imu, mag, vAccelerometer, vGyroscope, vMagnetometer)
+
+
     out_file = open('SensorFusionOutput.txt', 'w')
-    dataCount = 0;
+    dataCount = 0
 
     while(True):
         # Create figure for plotting
@@ -148,7 +151,7 @@ if __name__ == "__main__":
         # print(position)
 
         # Obtain Corrected Orientation
-        # compFilter.graphResult()
+        # compFilter.graphResult(imu, mag)
         # ~ if dataCount < 150:
             # ~ axis, angle = compFilter.toAxisAngle(compFilter.qResult)
             # ~ out_file.write(axis.__str__())
