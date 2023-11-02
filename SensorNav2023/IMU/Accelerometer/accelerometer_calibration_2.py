@@ -24,11 +24,12 @@ def initialize_sensors(imu_ports: list[ALLOWED_PORTS]) -> list[LSM6DSOX]:
 
 
 def get_raw_data_avg(imu):
-    acceleration_sums = numpy.zeros(3)
+    acceleration_sums = numpy.zeros(4)
     for _ in range(CALIBRATION_MEASUREMENTS):
         acceleration_sums[0] += imu.acceleration[0]
         acceleration_sums[1] += imu.acceleration[1]
         acceleration_sums[2] += imu.acceleration[2]
+        acceleration_sums[3] += 1
 
     acceleration_averages = acceleration_sums / float(CALIBRATION_MEASUREMENTS)
 
@@ -52,9 +53,9 @@ def get_calibration_matrix(raw, gravity_matrix):
 if __name__ == '__main__':
     imus = initialize_sensors([1, 4, 7])
 
-    imu0_raw = numpy.zeros((6, 3))
-    imu1_raw = numpy.zeros((6, 3))
-    imu2_raw = numpy.zeros((6, 3))
+    imu0_raw = numpy.zeros((6, 4))
+    imu1_raw = numpy.zeros((6, 4))
+    imu2_raw = numpy.zeros((6, 4))
 
     calibration_directions = ['x-axis up', 'x-axis down', 'y-axis up', 'y-axis down', 'z-axis up', 'z-axis down']
 
@@ -68,9 +69,8 @@ if __name__ == '__main__':
     imu1_calibration_matrix = get_calibration_matrix(imu1_raw, gravity_matrix)
     imu2_calibration_matrix = get_calibration_matrix(imu2_raw, gravity_matrix)
 
-    print("IMU0:")
-    print(imu0_calibration_matrix)
-    print("IMU1:")
-    print(imu1_calibration_matrix)
-    print("IMU2:")
-    print(imu2_calibration_matrix)
+    print("Calibration complete, paste this into the top of the IMU class:")
+
+    print(f"ACM = [{numpy.array2string(imu0_calibration_matrix, separator=', ')}, "
+          f"{numpy.array2string(imu1_calibration_matrix, separator=', ')}, "
+          f"{numpy.array2string(imu2_calibration_matrix, separator=', ')}]")

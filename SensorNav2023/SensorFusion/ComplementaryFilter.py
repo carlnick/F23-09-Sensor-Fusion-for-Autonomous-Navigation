@@ -213,6 +213,9 @@ class ComplementaryFilter:
         # This function is called periodically from FuncAnimation
         def animate(i, xs, ys_r, ys_p, ys_y):
 
+
+                
+
             # Add x and y to lists
             xs.append(dt.datetime.now().strftime('%H:%M:%S.%f'))
             ys_r.append(roll_pitch_yaw.x)
