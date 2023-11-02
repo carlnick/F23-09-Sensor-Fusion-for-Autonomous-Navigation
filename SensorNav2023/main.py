@@ -45,7 +45,7 @@ if __name__ == "__main__":
     position = Vector(0, 0, 0)
     velocity = Vector(0, 0, 0)
 
-    compFilter.graphResult(imu, mag, vAccelerometer, vGyroscope, vMagnetometer)
+    # compFilter.graphResult(imu, mag, vAccelerometer, vGyroscope, vMagnetometer)
 
 
     out_file = open('SensorFusionOutput.txt', 'w')
