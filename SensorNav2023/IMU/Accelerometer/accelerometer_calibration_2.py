@@ -71,6 +71,6 @@ if __name__ == '__main__':
 
     print("Calibration complete, paste this into the top of the IMU class:")
 
-    print(f"ACM = [{numpy.array2string(imu0_calibration_matrix)}, "
-          f"{numpy.array2string(imu1_calibration_matrix)}, "
-          f"{numpy.array2string(imu2_calibration_matrix)}]")
+    print(f"ACM = [{numpy.array2string(imu0_calibration_matrix, separator=', ')}, "
+          f"{numpy.array2string(imu1_calibration_matrix, separator=', ')}, "
+          f"{numpy.array2string(imu2_calibration_matrix, separator=', ')}]")
