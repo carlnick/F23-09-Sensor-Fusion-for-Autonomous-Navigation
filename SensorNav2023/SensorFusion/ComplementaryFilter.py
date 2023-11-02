@@ -204,7 +204,9 @@ class ComplementaryFilter:
         
         fig = plt.figure()
         ax = fig.add_subplot(111, projection='3d')
-        
+
+        vector = np.array(3)
+
         def animate(i):
             # read file and draw vectors using quiver
             # all start at 0,0,0
@@ -233,8 +235,12 @@ class ComplementaryFilter:
             # Correction Step
             self.correctOrientation(vNormAccel, vNormMag)
                     
-            vector, angle = self.toAxisAngle(self.qResult)
-            
+            axis, angle = self.toAxisAngle(self.qResult)
+
+            vector[0] = axis.x
+            vector[1] = axis.y
+            vector[2] = axis.z
+
             for i in range(0,3):
                 vector[i] = float(vector[i])
 
