@@ -55,6 +55,7 @@ def _vote_and_average(a: float, b: float, c: float) -> float:
 
 def _calibrate_accel(raw_data: list[float], imu_index: int):
     calibration_matrix = numpy.array(ACM[imu_index])
+    raw_data.append(1)
     return numpy.dot(raw_data, calibration_matrix)
 
 

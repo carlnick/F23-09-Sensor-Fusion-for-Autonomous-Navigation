@@ -6,7 +6,7 @@ imu = IMU([1, 4, 7])
 
 # Parameters
 x_len = 100  # Number of points to display
-y_range = [-10, 10]  # Range of possible Y values to display
+y_range = [-2, 2]  # Range of possible Y values to display
 
 # Create figure for plotting
 fig = plt.figure()
