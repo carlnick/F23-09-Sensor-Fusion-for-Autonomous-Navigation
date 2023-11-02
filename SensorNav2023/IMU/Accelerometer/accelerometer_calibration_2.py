@@ -40,6 +40,15 @@ def get_raw_data_row(imus, matrices, row):
         matrices[index][row] = get_raw_data_avg(imu)
 
 
+def get_calibration_matrix(raw, gravity_matrix):
+    # x = (A^T * A)^-1 * A^T * b
+    ATA = numpy.dot(raw.T, raw)
+    ATA_inv = ATA.linalg.inv()
+    ATB = numpy.dot(raw.T, gravity_matrix)
+    x = numpy.dot(ATA_inv, ATB)
+    return x
+
+
 if __name__ == '__main__':
     imus = initialize_sensors([1, 4, 7])
 
@@ -53,9 +62,15 @@ if __name__ == '__main__':
         input(f"Orient system with {calibration_directions[row]} and press enter to continue")
         get_raw_data_row(imus, [imu0_raw, imu1_raw, imu2_raw], row)
 
+    gravity_matrix = numpy.array([[1, 0, 0], [-1, 0, 0], [0, 1, 0], [0, -1, 0], [0, 0, 1], [0, 0, -1]])
+
+    imu0_calibration_matrix = get_calibration_matrix(imu0_raw, gravity_matrix)
+    imu1_calibration_matrix = get_calibration_matrix(imu1_raw, gravity_matrix)
+    imu2_calibration_matrix = get_calibration_matrix(imu2_raw, gravity_matrix)
+
     print("IMU0:")
-    print(imu0_raw)
+    print(imu0_calibration_matrix)
     print("IMU1:")
-    print(imu1_raw)
+    print(imu1_calibration_matrix)
     print("IMU2:")
-    print(imu2_raw)
+    print(imu2_calibration_matrix)
