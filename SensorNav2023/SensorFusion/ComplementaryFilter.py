@@ -205,7 +205,7 @@ class ComplementaryFilter:
         fig = plt.figure()
         ax = fig.add_subplot(111, projection='3d')
 
-        vector = np.array(3)
+        vector = np.array([0, 0, 0])
 
         def animate(i):
             # read file and draw vectors using quiver
