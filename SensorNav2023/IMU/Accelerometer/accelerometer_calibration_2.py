@@ -43,7 +43,7 @@ def get_raw_data_row(imus, matrices, row):
 def get_calibration_matrix(raw, gravity_matrix):
     # x = (A^T * A)^-1 * A^T * b
     ATA = numpy.dot(raw.T, raw)
-    ATA_inv = ATA.linalg.inv()
+    ATA_inv = numpy.linalg.inv(ATA)
     ATB = numpy.dot(raw.T, gravity_matrix)
     x = numpy.dot(ATA_inv, ATB)
     return x
