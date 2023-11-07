@@ -119,17 +119,12 @@ if __name__ == "__main__":
         start_time = perf_counter()
 
 
-        vAccelerometer.x = imu.get_acceleration('x')
-        vAccelerometer.y = imu.get_acceleration('y')
-        vAccelerometer.z = imu.get_acceleration('z')
+        vAccelerometer.set(*imu.get_acceleration())
 
         vMagnetometer.set(*mag.get_magnetic())
 
 
-        vGyroscope.x = imu.get_gyroscope('x')
-        vGyroscope.y = imu.get_gyroscope('y')
-        vGyroscope.z = imu.get_gyroscope('z')
-        
+        vGyroscope.set(*imu.get_gyroscope())
         
 
         compFilter.currTime = time()

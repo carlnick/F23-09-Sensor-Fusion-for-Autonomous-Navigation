@@ -1,9 +1,10 @@
+import adafruit_lsm6ds
 import board
 import adafruit_tca9548a
 from adafruit_lsm6ds.lsm6dsox import LSM6DSOX
 from typing import Literal
 import numpy
-import adafruit_lsm6ds
+from time import perf_counter
 
 # ACM is the accelerometer calibration matrix, to be filled in with the calibration data
 # ACM = [[[0.0, 1.0]] * 3] * 3
@@ -21,17 +22,16 @@ ACM = [[[2.03060745e-01, -9.60414554e-04, -1.09979863e-04],
         [-1.89117055e-03, 9.74183122e-03, -1.87680089e-02]]]
 
 # GCM is the gyroscope calibration matrix, to be filled in with the calibration data
-# GCM = [[[0.0, 1.0]] * 3] * 3
-GCM = [[[0.005629123169994712, 1.7699775413818446], [0.015204435778748603, 1.7560386051917058],
-        [0.0022067506729903296, 1.7725429987542713]],
-       [[-0.0012217304763960301, 1.7753325202433676], [-0.0033872477458079973, 1.782776109740368],
-        [0.004124867520932099, 1.7715026669880383]],
-       [[-0.0029962939933612666, 1.7541433597049298], [-0.00312457569338285, 1.7759366905208875],
-        [-0.005986479334340555, 1.759203832234968]]]
+GCM = [[[0.0, 1.0]] * 3] * 3
+# GCM = [[[0.005629123169994712, 1.7699775413818446], [0.015204435778748603, 1.7560386051917058],
+#         [0.0022067506729903296, 1.7725429987542713]],
+#        [[-0.0012217304763960301, 1.7753325202433676], [-0.0033872477458079973, 1.782776109740368],
+#         [0.004124867520932099, 1.7715026669880383]],
+#        [[-0.0029962939933612666, 1.7541433597049298], [-0.00312457569338285, 1.7759366905208875],
+#         [-0.005986479334340555, 1.759203832234968]]]
 
 # Multiplexer port numbers
 allowed_ports = Literal[0, 1, 2, 3, 4, 5, 6, 7]
-
 
 def _vote_and_average(a: float, b: float, c: float) -> float:
     # Calculate absolute differences
@@ -53,6 +53,12 @@ def _vote_and_average(a: float, b: float, c: float) -> float:
     best_values = diff_pair_mapping[min_diff]
     return (best_values[0] + best_values[1]) / 2.0
 
+def _vote_helper(sensor0, sensor1, sensor2):
+    
+    result_x = _vote_and_average(sensor0[0],sensor1[0],sensor2[0])
+    result_y = _vote_and_average(sensor0[1],sensor1[1],sensor2[1])
+    result_z = _vote_and_average(sensor0[2],sensor1[2],sensor2[2])
+    return [result_x, result_y, result_z]
 
 def _calibrate_accel(raw_data: list[float], imu_index: int):
     calibration_matrix = numpy.array(ACM[imu_index])
@@ -77,16 +83,17 @@ class IMU:
         self.IMU0 = LSM6DSOX(mux[imu_ports[0]])
         self.IMU1 = LSM6DSOX(mux[imu_ports[1]])
         self.IMU2 = LSM6DSOX(mux[imu_ports[2]])
-
+        
         self.IMU0.accelerometer_data_rate = adafruit_lsm6ds.Rate.RATE_6_66K_HZ
         self.IMU1.accelerometer_data_rate = adafruit_lsm6ds.Rate.RATE_6_66K_HZ
         self.IMU2.accelerometer_data_rate = adafruit_lsm6ds.Rate.RATE_6_66K_HZ
-
+        
         self.IMU0.gyro_data_rate = adafruit_lsm6ds.Rate.RATE_6_66K_HZ
         self.IMU1.gyro_data_rate = adafruit_lsm6ds.Rate.RATE_6_66K_HZ
         self.IMU2.gyro_data_rate = adafruit_lsm6ds.Rate.RATE_6_66K_HZ
 
-    def get_acceleration(self, axis: str) -> float:
+
+    def get_acceleration(self):
         """
         Uses a lambda function to get the raw data from the sensor and axis and passes it to the _get_sensor_data
         method to do the calibration, filtering, and averaging
@@ -96,21 +103,21 @@ class IMU:
         """
 
         # Check that the axis is valid
-        if len(axis) != 1:
-            raise ValueError("Axis must be a single character (x, y, or z)")
+        # if len(axis) != 1:
+        #     raise ValueError("Axis must be a single character (x, y, or z)")
 
-        axis_number = ord(axis) - ord('x')
+        # axis_number = ord(axis) - ord('x')
 
-        if axis_number < 0 or axis_number > 2:
-            raise ValueError("Axis must be x, y, or z")
+        # if axis_number < 0 or axis_number > 2:
+        #     raise ValueError("Axis must be x, y, or z")
 
         imu0_cal = _calibrate_accel(list(self.IMU0.acceleration), 0)
         imu1_cal = _calibrate_accel(list(self.IMU1.acceleration), 1)
         imu2_cal = _calibrate_accel(list(self.IMU2.acceleration), 2)
+        
+        return _vote_helper(imu0_cal, imu1_cal, imu2_cal)
 
-        return _vote_and_average(imu0_cal[axis_number], imu1_cal[axis_number], imu2_cal[axis_number])
-
-    def get_gyroscope(self, axis: str) -> float:
+    def get_gyroscope(self) -> float:
         """
         Uses a lambda function to get the raw data from the sensor and axis and passes it to the _get_sensor_data
         method to do the calibration, filtering, and averaging
@@ -120,32 +127,31 @@ class IMU:
         """
 
         # Check that the axis is valid
-        if len(axis) != 1:
-            raise ValueError("Axis must be a single character (x, y, or z)")
+        # if len(axis) != 1:
+        #     raise ValueError("Axis must be a single character (x, y, or z)")
 
-        axis_number = ord(axis) - ord('x')
+        # axis_number = ord(axis) - ord('x')
 
-        if axis_number < 0 or axis_number > 2:
-            raise ValueError("Axis must be x, y, or z")
+        # if axis_number < 0 or axis_number > 2:
+        #     raise ValueError("Axis must be x, y, or z")
 
         imu0_cal = _calibrate_gyro(list(self.IMU0.gyro), 0)
         imu1_cal = _calibrate_gyro(list(self.IMU1.gyro), 1)
         imu2_cal = _calibrate_gyro(list(self.IMU2.gyro), 2)
 
-        return _vote_and_average(imu0_cal[axis_number], imu1_cal[axis_number], imu2_cal[axis_number])
-
-
+        return _vote_helper(imu0_cal, imu1_cal, imu2_cal)
 
     def get_acceleration_all(self) -> list:
         """
         Gets the acceleration in all axes
         :return: A list containing the acceleration in the x, y, and z axes in meters per second^2, in that order
         """
-        return [self.get_acceleration(axis) for axis in 'xyz']
+        return self.get_acceleration()
 
     def get_gyroscope_all(self) -> list:
         """
         Gets the angular velocity in all axes
         :return: A list containing the angular velocity in the x, y, and z axes in degrees per second, in that order
         """
-        return [self.get_gyroscope(axis) for axis in 'xyz']
+        return self.get_gyroscope()
+
