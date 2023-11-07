@@ -108,17 +108,24 @@ class ComplementaryFilter:
     def correctAcceleration(self, local_frame_acceleration:Vector):
         # print(self.qOrientation)
         # Rotation matrix for inv_pred multiplied by the body frame gravity vector measured by the accelerometer
-        vPredictedGravity = Quaternion.rotateTMultiply(self.qOrientation, local_frame_acceleration)
+        vPredictedGravity = Quaternion.rotateMultiply(self.qOrientation.conjugate(), local_frame_acceleration)
         
         # print(vPredictedGravity)
 
         delta_Accel:Quaternion = Quaternion()
         # initial delta values
-       
-        delta_Accel.q0 = math.sqrt((vPredictedGravity.z + 1) / 2)
-        delta_Accel.q1 = -1* vPredictedGravity.y / (math.sqrt(2 * (vPredictedGravity.z + 1)))
-        delta_Accel.q2 = vPredictedGravity.x / (math.sqrt(2 * (vPredictedGravity.z + 1)))
-        delta_Accel.q3 = 0
+        
+        if vPredictedGravity.z >= 0:
+            delta_Accel.q0 = math.sqrt((vPredictedGravity.z + 1) / 2)
+            delta_Accel.q1 = -1* vPredictedGravity.y / (math.sqrt(2 * (vPredictedGravity.z + 1)))
+            delta_Accel.q2 = vPredictedGravity.x / (math.sqrt(2 * (vPredictedGravity.z + 1)))
+            delta_Accel.q3 = 0
+        else:
+            delta_Accel.set_q0(-1*(vPredictedGravity.y)/math.sqrt(2*(1-vPredictedGravity.z)))
+            delta_Accel.set_q1(math.sqrt((1-vPredictedGravity.z)/2))
+            delta_Accel.set_q2(0)
+            delta_Accel.set_q3((vPredictedGravity.x)/math.sqrt(2*(1-vPredictedGravity.z)))
+
         # compute alpha weight
         weight = self.alpha_const #* self.compute_alpha(local_frame_acceleration)
         # complete LERP or SLERP
@@ -152,7 +159,7 @@ class ComplementaryFilter:
     def correctMagneticField(self, magnetometer:Vector):
 
         # Rotation matrix for inv_pred multiplied by the body frame gravity vector measured by the accelerometer
-        vWorldFrameMag = Quaternion.rotateTMultiply(self.qResult, magnetometer)
+        vWorldFrameMag = Quaternion.rotateMultiply(self.qResult.conjugate(), magnetometer)
         gamma = vWorldFrameMag.x**2 + vWorldFrameMag.y**2
 
         delta_Mag:Quaternion = Quaternion()

@@ -1,4 +1,4 @@
-from numpy import array, dot, rad2deg
+from numpy import array, dot, zeros
 from board import I2C
 from adafruit_tca9548a import TCA9548A
 from adafruit_lsm6ds.lsm6dsox import LSM6DSOX
@@ -19,7 +19,8 @@ ACM = [[[2.03060745e-01, -9.60414554e-04, -1.09979863e-04],
         [-1.89117055e-03, 9.74183122e-03, -1.87680089e-02]]]
 
 # GCM is the gyroscope calibration matrix, to be filled in with the calibration data
-GCM = [[[0.0, 1.0]] * 3] * 3
+# GCM = [[[0.0, 1.0]] * 3] * 3
+GCM = [[0.006119647956267721, 0.016819258035925055, -0.001092074329588504], [-0.000989448969571235, -0.0026483298820527243, 0.0018803195613282646], [-0.003199406685062105, -0.003317150959724769, 0.003518965562794444]]
 
 # Multiplexer port numbers
 ALLOWED_PORTS = Literal[0, 1, 2, 3, 4, 5, 6, 7]
@@ -81,13 +82,9 @@ def _vote_and_average(calibrated_data: list[list[float]]) -> list[float]:
 
 
 def _calibrate_gyro(raw_data: list[list[float]]) -> list[list[float]]:
-    calibrated_data: list[list[float]] = [[0.0] * 3] * 3
-    for imu_index, data in enumerate(raw_data):
-        calibration_matrix = GCM[imu_index]
-        for axis, offsets in enumerate(calibration_matrix):
-            calibrated_data[imu_index][axis] = (data[axis] + offsets[0]) * offsets[1]
-
-    return calibrated_data
+    raw_data_copy = array(raw_data)
+    calibration_matrix = array(GCM)
+    return raw_data_copy + calibration_matrix
 
 
 class IMU:
@@ -100,6 +97,6 @@ class IMU:
         return _vote_and_average(calibrated_data)
 
     def get_gyroscope(self):
-        raw_data = rad2deg(list([self.IMUs[0].gyro, self.IMUs[1].gyro, self.IMUs[2].gyro]))
+        raw_data = list([self.IMUs[0].gyro, self.IMUs[1].gyro, self.IMUs[2].gyro])
         calibrated_data = _calibrate_gyro(raw_data)
         return _vote_and_average(calibrated_data)
