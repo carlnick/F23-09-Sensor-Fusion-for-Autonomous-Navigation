@@ -47,6 +47,8 @@ if __name__ == "__main__":
 
     out_file = open('SensorFusionOutput.txt', 'w')
     dataCount = 0
+    num_samples = 0
+    total_time = 0.0
 
     while True:
         # Create figure for plotting
@@ -116,13 +118,12 @@ if __name__ == "__main__":
         # ani = animation.FuncAnimation(fig, animate, fargs=(xs, ys_r, ys_p, ys_y), interval=100)
         # plt.show()
         # Obtain sensor data
+        
         start_time = perf_counter()
 
         vAccelerometer.set(*imu.get_acceleration())
-
-        vMagnetometer.set(*mag.get_magnetic())
-
         vGyroscope.set(*imu.get_gyroscope())
+        vMagnetometer.set(*mag.get_magnetic())
 
         compFilter.currTime = time()
         # Normalize vectors for orientation sensor fusion
@@ -140,9 +141,12 @@ if __name__ == "__main__":
         position, velocity = currentPositionVelocity(vAccelerometer, compFilter.qResult, velocity, position,
                                                      compFilter.deltaTime)
         end_time = perf_counter()
-
-        data_rate = 1.0 / (end_time - start_time)
-
+        
+        num_samples += 1
+        total_time += (end_time - start_time)
+        
+        data_rate = num_samples / total_time
+        
         print(f"Data rate: {round(data_rate, 3)} Hz")
         print(position)
 
