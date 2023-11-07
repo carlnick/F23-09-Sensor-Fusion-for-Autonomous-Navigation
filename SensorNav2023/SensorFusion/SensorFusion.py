@@ -169,6 +169,8 @@ def currentPositionVelocity(acceleration, quaternion, prevVel, prevPos, timeDelt
     linearAccel.y = acceleration.y - gravity.y
     linearAccel.z = acceleration.z - gravity.z
 
+    print(linearAccel)
+
     velocity = Vector()
 
     velocity.x = prevVel.x + linearAccel.x * timeDelta

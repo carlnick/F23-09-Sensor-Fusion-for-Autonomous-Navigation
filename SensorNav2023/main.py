@@ -116,6 +116,7 @@ if __name__ == "__main__":
         # ani = animation.FuncAnimation(fig, animate, fargs=(xs, ys_r, ys_p, ys_y), interval=100)
         # plt.show()
         # Obtain sensor data
+        start_time = perf_counter()
 
 
         vAccelerometer.x = imu.get_acceleration('x')
@@ -132,8 +133,6 @@ if __name__ == "__main__":
         
 
         compFilter.currTime = time()
-        start_time = perf_counter()
-
         # Normalize vectors for orientation sensor fusion
         vNormAccel = vAccelerometer.normalize()
         vNormMag = vMagnetometer.normalize()
@@ -152,7 +151,7 @@ if __name__ == "__main__":
         data_rate = 1.0 / (end_time - start_time)
 
         print(f"Data rate: {round(data_rate, 3)} Hz")
-        # print(position)
+        print(position)
 
         # Obtain Corrected Orientation
         # compFilter.graphResult()
@@ -173,7 +172,7 @@ if __name__ == "__main__":
         pitch = round(euler.y, 2)
         yaw = round(euler.z, 2)
         
-        # print(f"Roll: {roll}, Pitch: {pitch}, Yaw: {yaw}")
+        print(f"Roll: {roll}, Pitch: {pitch}, Yaw: {yaw}")
         
         # print(compFilter.toEuler(compFilter.qResult))
         # print(compFilter.qResult)
