@@ -44,4 +44,5 @@ def get_bias_offsets(imus: list[LSM6DSOX]) -> numpy.ndarray:
 
 if __name__ == "__main__":
     imus = init_imus([1, 4, 7])
-    print(get_bias_offsets(imus))
+    bias_offsets = list(get_bias_offsets(imus))
+    print(f"GCM = [{bias_offsets[0]}, {bias_offsets[1]}, {bias_offsets[2]}]")
