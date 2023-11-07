@@ -152,16 +152,16 @@ if __name__ == "__main__":
 
         # Obtain Corrected Orientation
         # compFilter.graphResult()
-        if dataCount < 150:
-            axis, angle = compFilter.toAxisAngle(compFilter.qResult)
-            out_file.write(axis.__str__())
-            out_file.write('\n')
-            out_file.write(str(angle))
-            out_file.write('\n')
-            dataCount = dataCount + 1
-        else:
-            out_file.close()
-            sys.exit(0)
+#         if dataCount < 150:
+#             axis, angle = compFilter.toAxisAngle(compFilter.qResult)
+#             out_file.write(axis.__str__())
+#             out_file.write('\n')
+#             out_file.write(str(angle))
+#             out_file.write('\n')
+#             dataCount = dataCount + 1
+#         else:
+#             out_file.close()
+#             sys.exit(0)
 
         # print(compFilter.qResult)
         euler = compFilter.toEuler(compFilter.qResult)
