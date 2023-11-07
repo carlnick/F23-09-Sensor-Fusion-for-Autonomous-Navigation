@@ -1,14 +1,11 @@
-import adafruit_lsm6ds
-import board
-import adafruit_tca9548a
+from numpy import array, dot, rad2deg
+from board import I2C
+from adafruit_tca9548a import TCA9548A
 from adafruit_lsm6ds.lsm6dsox import LSM6DSOX
+from adafruit_lsm6ds import Rate, AccelRange, GyroRange
 from typing import Literal
-import numpy
-from time import perf_counter
 
 # ACM is the accelerometer calibration matrix, to be filled in with the calibration data
-# ACM = [[[0.0, 1.0]] * 3] * 3
-# ACM = [[[-0.011712866627000003, 1.9786003080074333], [-0.011712866627000003, 1.9786003080074333], [-0.011712866627000003, 1.9786003080074333]], [[-0.07282555583100003, 2.0102546695712573], [-0.07282555583100003, 2.0102546695712573], [-0.07282555583100003, 2.0102546695712573]], [[-0.19314864027200002, 1.9854361392673074], [-0.19314864027200002, 1.9854361392673074], [-0.19314864027200002, 1.9854361392673074]]]
 ACM = [[[2.03060745e-01, -9.60414554e-04, -1.09979863e-04],
         [-4.16799534e-04, 2.01761957e-01, -1.55430872e-03],
         [-8.71342361e-04, 4.43829649e-04, 2.04868707e-01],
@@ -23,135 +20,86 @@ ACM = [[[2.03060745e-01, -9.60414554e-04, -1.09979863e-04],
 
 # GCM is the gyroscope calibration matrix, to be filled in with the calibration data
 GCM = [[[0.0, 1.0]] * 3] * 3
-# GCM = [[[0.005629123169994712, 1.7699775413818446], [0.015204435778748603, 1.7560386051917058],
-#         [0.0022067506729903296, 1.7725429987542713]],
-#        [[-0.0012217304763960301, 1.7753325202433676], [-0.0033872477458079973, 1.782776109740368],
-#         [0.004124867520932099, 1.7715026669880383]],
-#        [[-0.0029962939933612666, 1.7541433597049298], [-0.00312457569338285, 1.7759366905208875],
-#         [-0.005986479334340555, 1.759203832234968]]]
 
 # Multiplexer port numbers
-allowed_ports = Literal[0, 1, 2, 3, 4, 5, 6, 7]
+ALLOWED_PORTS = Literal[0, 1, 2, 3, 4, 5, 6, 7]
 
-def _vote_and_average(a: float, b: float, c: float) -> float:
-    # Calculate absolute differences
-    diff_ab = abs(a - b)
-    diff_ac = abs(a - c)
-    diff_bc = abs(b - c)
 
-    # Find the minimum difference
-    min_diff = min(diff_ab, diff_ac, diff_bc)
+def init_imus(imu_ports: list[ALLOWED_PORTS]) -> list[LSM6DSOX]:
+    """
+    Initializes the IMUs on the specified multiplexer ports and sets their measurement ranges and data rates
+    :param imu_ports: A list of ports on the multiplexer that the IMUs are connected to, e.g. [1, 4, 7]
+    :return: A list containing the initialized IMUs
+    """
+    mux = TCA9548A(I2C())
 
-    # Map differences to value pairs
+    imus: list[LSM6DSOX] = list()
+    for port in imu_ports:
+        imus.append(LSM6DSOX(mux[port]))
+
+    for imu in imus:
+        imu.accelerometer_range = AccelRange.RANGE_16G
+        imu.accelerometer_data_rate = Rate.RATE_833_HZ
+        imu.gyro_range = GyroRange.RANGE_125_DPS
+        imu.gyro_data_rate = Rate.RATE_833_HZ
+
+    return imus
+
+
+def _calibrate_accel(raw_data: list[list[float]]) -> list[list[float]]:
+    calibrated_data: list[list[float]] = [[0.0] * 3] * 3
+    for imu_index, data in enumerate(raw_data):
+        calibration_matrix = array(ACM[imu_index])
+        calibrated_data[imu_index] = dot(data + [1.0], calibration_matrix)
+
+    return calibrated_data
+
+
+def _single_vote_and_average(data: list[float]) -> float:
+    diff_0 = abs(data[0] - data[1])
+    diff_1 = abs(data[0] - data[2])
+    diff_2 = abs(data[1] - data[2])
+
+    min_diff = min(diff_0, diff_1, diff_2)
+
     diff_pair_mapping = {
-        diff_ab: (a, b),
-        diff_ac: (a, c),
-        diff_bc: (b, c)
+        diff_0: (data[0], data[1]),
+        diff_1: (data[0], data[2]),
+        diff_2: (data[1], data[2])
     }
 
-    # Return the average of the value pair corresponding to the minimum difference
     best_values = diff_pair_mapping[min_diff]
     return (best_values[0] + best_values[1]) / 2.0
 
-def _vote_helper(sensor0, sensor1, sensor2):
-    
-    result_x = _vote_and_average(sensor0[0],sensor1[0],sensor2[0])
-    result_y = _vote_and_average(sensor0[1],sensor1[1],sensor2[1])
-    result_z = _vote_and_average(sensor0[2],sensor1[2],sensor2[2])
-    return [result_x, result_y, result_z]
 
-def _calibrate_accel(raw_data: list[float], imu_index: int):
-    calibration_matrix = numpy.array(ACM[imu_index])
-    raw_data.append(1)
-    return numpy.dot(raw_data, calibration_matrix)
+def _vote_and_average(calibrated_data: list[list[float]]) -> list[float]:
+    voted_data: list[float] = []
+    for data in calibrated_data:
+        voted_data.append(_single_vote_and_average(data))
+
+    return voted_data
 
 
-def _calibrate_gyro(raw_data: list[float], imu_index: int):
-    # calibration_matrix = numpy.array(GCM[imu_index])
-    # return numpy.dot(raw_data, calibration_matrix)
-    return raw_data
+def _calibrate_gyro(raw_data: list[list[float]]) -> list[list[float]]:
+    calibrated_data: list[list[float]] = [[0.0] * 3] * 3
+    for imu_index, data in enumerate(raw_data):
+        calibration_matrix = GCM[imu_index]
+        for axis, offsets in enumerate(calibration_matrix):
+            calibrated_data[imu_index][axis] = (data[axis] + offsets[0]) * offsets[1]
+
+    return calibrated_data
 
 
 class IMU:
-    def __init__(self, imu_ports: list[allowed_ports]):
-        """
-
-        :param imu_ports: A list of ports that the IMUs are connected to, e.g. [2, 5, 6]
-        """
-        mux = adafruit_tca9548a.TCA9548A(board.I2C())
-
-        self.IMU0 = LSM6DSOX(mux[imu_ports[0]])
-        self.IMU1 = LSM6DSOX(mux[imu_ports[1]])
-        self.IMU2 = LSM6DSOX(mux[imu_ports[2]])
-        
-        self.IMU0.accelerometer_data_rate = adafruit_lsm6ds.Rate.RATE_6_66K_HZ
-        self.IMU1.accelerometer_data_rate = adafruit_lsm6ds.Rate.RATE_6_66K_HZ
-        self.IMU2.accelerometer_data_rate = adafruit_lsm6ds.Rate.RATE_6_66K_HZ
-        
-        self.IMU0.gyro_data_rate = adafruit_lsm6ds.Rate.RATE_6_66K_HZ
-        self.IMU1.gyro_data_rate = adafruit_lsm6ds.Rate.RATE_6_66K_HZ
-        self.IMU2.gyro_data_rate = adafruit_lsm6ds.Rate.RATE_6_66K_HZ
-
+    def __init__(self, imu_ports: list[ALLOWED_PORTS]) -> None:
+        self.IMUs = init_imus(imu_ports)
 
     def get_acceleration(self):
-        """
-        Uses a lambda function to get the raw data from the sensor and axis and passes it to the _get_sensor_data
-        method to do the calibration, filtering, and averaging
+        raw_data = [list(self.IMUs[0].acceleration), list(self.IMUs[1].acceleration), list(self.IMUs[2].acceleration)]
+        calibrated_data = _calibrate_accel(raw_data)
+        return _vote_and_average(calibrated_data)
 
-        :param axis: The axis to get data from
-        :return: The calibrated, filtered, and averaged linear acceleration in meters per second^2 in the selected axis
-        """
-
-        # Check that the axis is valid
-        # if len(axis) != 1:
-        #     raise ValueError("Axis must be a single character (x, y, or z)")
-
-        # axis_number = ord(axis) - ord('x')
-
-        # if axis_number < 0 or axis_number > 2:
-        #     raise ValueError("Axis must be x, y, or z")
-
-        imu0_cal = _calibrate_accel(list(self.IMU0.acceleration), 0)
-        imu1_cal = _calibrate_accel(list(self.IMU1.acceleration), 1)
-        imu2_cal = _calibrate_accel(list(self.IMU2.acceleration), 2)
-        
-        return _vote_helper(imu0_cal, imu1_cal, imu2_cal)
-
-    def get_gyroscope(self) -> float:
-        """
-        Uses a lambda function to get the raw data from the sensor and axis and passes it to the _get_sensor_data
-        method to do the calibration, filtering, and averaging
-
-        :param axis: The axis to get data from
-        :return: The calibrated, filtered, and averaged angular velocity in degrees per second in the selected axis
-        """
-
-        # Check that the axis is valid
-        # if len(axis) != 1:
-        #     raise ValueError("Axis must be a single character (x, y, or z)")
-
-        # axis_number = ord(axis) - ord('x')
-
-        # if axis_number < 0 or axis_number > 2:
-        #     raise ValueError("Axis must be x, y, or z")
-
-        imu0_cal = _calibrate_gyro(list(self.IMU0.gyro), 0)
-        imu1_cal = _calibrate_gyro(list(self.IMU1.gyro), 1)
-        imu2_cal = _calibrate_gyro(list(self.IMU2.gyro), 2)
-
-        return _vote_helper(imu0_cal, imu1_cal, imu2_cal)
-
-    def get_acceleration_all(self) -> list:
-        """
-        Gets the acceleration in all axes
-        :return: A list containing the acceleration in the x, y, and z axes in meters per second^2, in that order
-        """
-        return self.get_acceleration()
-
-    def get_gyroscope_all(self) -> list:
-        """
-        Gets the angular velocity in all axes
-        :return: A list containing the angular velocity in the x, y, and z axes in degrees per second, in that order
-        """
-        return self.get_gyroscope()
-
+    def get_gyroscope(self):
+        raw_data = rad2deg(list([self.IMUs[0].gyro, self.IMUs[1].gyro, self.IMUs[2].gyro]))
+        calibrated_data = _calibrate_gyro(raw_data)
+        return _vote_and_average(calibrated_data)

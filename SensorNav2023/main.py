@@ -1,7 +1,7 @@
 # IMPORT STATEMENTS
 from SensorFusion.Vector import Vector
 from SensorFusion.ComplementaryFilter import ComplementaryFilter
-from SensorFusion.SensorFusion import orientation, currentPositionVelocity 
+from SensorFusion.SensorFusion import orientation, currentPositionVelocity
 from IMU.IMU import IMU
 from Magnetometer.Magnetometer import Magnetometer
 import datetime as dt
@@ -19,10 +19,10 @@ if __name__ == "__main__":
     mag = Magnetometer()
 
     # Initialize Accelerometer Vector
-    vAccelerometer = Vector(*imu.get_acceleration_all())
+    vAccelerometer = Vector(*imu.get_acceleration())
 
     # Initialize Gyroscope Vector
-    vGyroscope = Vector(*imu.get_gyroscope_all())
+    vGyroscope = Vector(*imu.get_gyroscope())
     vGyroscope.x = vGyroscope.x
     vGyroscope.y = vGyroscope.y
     vGyroscope.z = vGyroscope.z
@@ -40,15 +40,15 @@ if __name__ == "__main__":
 
     # Initialize Complementary Filter with initial orientation
     compFilter = ComplementaryFilter(qFirstPrediction)
-    
+
     # Initialize Position and Velocity vector
     position = Vector(0, 0, 0)
     velocity = Vector(0, 0, 0)
 
     out_file = open('SensorFusionOutput.txt', 'w')
-    dataCount = 0;
+    dataCount = 0
 
-    while(True):
+    while True:
         # Create figure for plotting
         # fig = plt.figure()
         # ar = fig.add_subplot(3, 1, 1)
@@ -118,14 +118,11 @@ if __name__ == "__main__":
         # Obtain sensor data
         start_time = perf_counter()
 
-
         vAccelerometer.set(*imu.get_acceleration())
 
         vMagnetometer.set(*mag.get_magnetic())
 
-
         vGyroscope.set(*imu.get_gyroscope())
-        
 
         compFilter.currTime = time()
         # Normalize vectors for orientation sensor fusion
@@ -134,13 +131,14 @@ if __name__ == "__main__":
 
         # Prediction Step
         compFilter.predict(vGyroscope)
-        
-        #print(compFilter.qOrientation)
+
+        # print(compFilter.qOrientation)
 
         # Correction Step
         compFilter.correctOrientation(vNormAccel, vNormMag)
 
-        position, velocity = currentPositionVelocity(vAccelerometer, compFilter.qResult, velocity, position, compFilter.deltaTime)
+        position, velocity = currentPositionVelocity(vAccelerometer, compFilter.qResult, velocity, position,
+                                                     compFilter.deltaTime)
         end_time = perf_counter()
 
         data_rate = 1.0 / (end_time - start_time)
@@ -157,17 +155,17 @@ if __name__ == "__main__":
             out_file.write(str(angle))
             out_file.write('\n')
             dataCount = dataCount + 1
-        else: 
+        else:
             out_file.close()
             sys.exit(0)
 
-        #print(compFilter.qResult)
+        # print(compFilter.qResult)
         euler = compFilter.toEuler(compFilter.qResult)
         roll = round(euler.x, 2)
         pitch = round(euler.y, 2)
         yaw = round(euler.z, 2)
-        
+
         print(f"Roll: {roll}, Pitch: {pitch}, Yaw: {yaw}")
-        
+
         # print(compFilter.toEuler(compFilter.qResult))
         # print(compFilter.qResult)

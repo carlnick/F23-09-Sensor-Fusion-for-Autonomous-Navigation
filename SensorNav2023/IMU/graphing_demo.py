@@ -51,14 +51,16 @@ dx.set_ylabel("Angular Velocity in degrees per second")
 
 # This function is called periodically from FuncAnimation
 def animate(i, ya, yb, yc, yd, ye, yf):
-
     # Add y to list
-    ya.append(imu.get_acceleration('x'))
-    yb.append(imu.get_acceleration('y'))
-    yc.append(imu.get_acceleration('z'))
-    yd.append(imu.get_gyroscope('x'))
-    ye.append(imu.get_gyroscope('y'))
-    yf.append(imu.get_gyroscope('z'))
+    accelerometer_data = imu.get_acceleration()
+    gyroscope_data = imu.get_gyroscope()
+
+    ya.append(accelerometer_data[0])
+    yb.append(accelerometer_data[1])
+    yc.append(accelerometer_data[2])
+    yd.append(gyroscope_data[0])
+    ye.append(gyroscope_data[1])
+    yf.append(gyroscope_data[2])
 
     # Limit y list to set number of items
     ya = ya[-x_len:]
