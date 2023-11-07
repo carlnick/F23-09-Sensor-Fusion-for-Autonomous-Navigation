@@ -122,27 +122,27 @@ class ComplementaryFilter:
         # compute alpha weight
         weight = self.alpha_const #* self.compute_alpha(local_frame_acceleration)
         # complete LERP or SLERP
-        if delta_Accel.q0 > self.epsilon:
-            lerp_quat = (1- weight) * self.unit_quat + weight * delta_Accel
-            lerp_quat = lerp_quat.normalize()
-            print("lerp")
-            print(lerp_quat)
-            print("Result before accel lerp")
-            print(self.qResult)
-            self.qResult = self.qOrientation * lerp_quat
-        else:  
-            # in progress
-            qIdentity = Quaternion()
-            angle = math.acos(delta_Accel.q0)
+        # if delta_Accel.q0 > self.epsilon:
+        lerp_quat = (1- weight) * self.unit_quat + weight * delta_Accel
+        lerp_quat = lerp_quat.normalize()
+        # print("lerp")
+        # print(lerp_quat)
+        # print("Result before accel lerp")
+        # print(self.qResult)
+        self.qResult = self.qOrientation * lerp_quat
+        # else:  
+        #     # in progress
+        #     qIdentity = Quaternion()
+        #     angle = math.acos(delta_Accel.q0)
 
-            slerp_quat =(math.sin((1 - weight) * angle) / math.sin(angle)) * qIdentity + (math.sin(weight * angle) / math.sin(angle)) * delta_Accel
-            print("slerp")
-            print(slerp_quat)
-            print("Result before accel slerp")
-            print(self.qResult)
-            self.qResult = self.qOrientation * slerp_quat
-        print("Result after accel Lerp/Slerp")
-        print(self.qResult)
+        #     slerp_quat =(math.sin((1 - weight) * angle) / math.sin(angle)) * qIdentity + (math.sin(weight * angle) / math.sin(angle)) * delta_Accel
+        #     print("slerp")
+        #     print(slerp_quat)
+        #     print("Result before accel slerp")
+        #     print(self.qResult)
+        #     self.qResult = self.qOrientation * slerp_quat
+        # print("Result after accel Lerp/Slerp")
+        # print(self.qResult)
 
     """
     Magnetometer-Based Correction.
@@ -164,27 +164,27 @@ class ComplementaryFilter:
         # compute alpha weight
         weight = self.alpha_const #* self.compute_alpha(local_frame_acceleration)
         # complete LERP or SLERP
-        if delta_Mag.q0 > self.epsilon:
-            lerp_quat = (1- weight) * self.unit_quat + weight * delta_Mag
-            lerp_quat = lerp_quat.normalize()
-            print("lerp")
-            print(lerp_quat)
-            print("Result before mag lerp")
-            print(self.qResult)
-            self.qResult = self.qResult * lerp_quat
-        else:  
-            # in progress
-            qIdentity = Quaternion()
-            angle = math.acos(delta_Mag.q0)
+        # if delta_Mag.q0 > self.epsilon:
+        lerp_quat = (1- weight) * self.unit_quat + weight * delta_Mag
+        lerp_quat = lerp_quat.normalize()
+        # print("lerp")
+        # print(lerp_quat)
+        # print("Result before mag lerp")
+        # print(self.qResult)
+        self.qResult = self.qResult * lerp_quat
+        # else:  
+        #     # in progress
+        #     qIdentity = Quaternion()
+        #     angle = math.acos(delta_Mag.q0)
 
-            slerp_quat =(math.sin((1 - weight) * angle) / math.sin(angle)) * qIdentity + (math.sin(weight * angle) / math.sin(angle)) * delta_Mag
-            print("slerp")
-            print(slerp_quat)
-            print("Result before mag slerp")
-            print(self.qResult)
-            self.qResult = self.qResult * slerp_quat
-        print("Result after mag lerp/slerp")
-        print(self.qResult)
+        #     slerp_quat =(math.sin((1 - weight) * angle) / math.sin(angle)) * qIdentity + (math.sin(weight * angle) / math.sin(angle)) * delta_Mag
+        #     print("slerp")
+        #     print(slerp_quat)
+        #     print("Result before mag slerp")
+        #     print(self.qResult)
+        #     self.qResult = self.qResult * slerp_quat
+        # print("Result after mag lerp/slerp")
+        # print(self.qResult)
 
     """
     Correction step.

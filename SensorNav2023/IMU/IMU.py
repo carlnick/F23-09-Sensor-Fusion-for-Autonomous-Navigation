@@ -3,6 +3,7 @@ import adafruit_tca9548a
 from adafruit_lsm6ds.lsm6dsox import LSM6DSOX
 from typing import Literal
 import numpy
+import adafruit_lsm6ds
 
 # ACM is the accelerometer calibration matrix, to be filled in with the calibration data
 # ACM = [[[0.0, 1.0]] * 3] * 3
@@ -77,6 +78,14 @@ class IMU:
         self.IMU1 = LSM6DSOX(mux[imu_ports[1]])
         self.IMU2 = LSM6DSOX(mux[imu_ports[2]])
 
+        self.IMU0.accelerometer_data_rate = adafruit_lsm6ds.Rate.RATE_6_66K_HZ
+        self.IMU1.accelerometer_data_rate = adafruit_lsm6ds.Rate.RATE_6_66K_HZ
+        self.IMU2.accelerometer_data_rate = adafruit_lsm6ds.Rate.RATE_6_66K_HZ
+
+        self.IMU0.gyro_data_rate = adafruit_lsm6ds.Rate.RATE_6_66K_HZ
+        self.IMU1.gyro_data_rate = adafruit_lsm6ds.Rate.RATE_6_66K_HZ
+        self.IMU2.gyro_data_rate = adafruit_lsm6ds.Rate.RATE_6_66K_HZ
+
     def get_acceleration(self, axis: str) -> float:
         """
         Uses a lambda function to get the raw data from the sensor and axis and passes it to the _get_sensor_data
@@ -95,13 +104,9 @@ class IMU:
         if axis_number < 0 or axis_number > 2:
             raise ValueError("Axis must be x, y, or z")
 
-        imu0_raw = [self.IMU0.acceleration[0], self.IMU0.acceleration[1], self.IMU0.acceleration[2]]
-        imu1_raw = [self.IMU1.acceleration[0], self.IMU1.acceleration[1], self.IMU1.acceleration[2]]
-        imu2_raw = [self.IMU2.acceleration[0], self.IMU2.acceleration[1], self.IMU2.acceleration[2]]
-
-        imu0_cal = _calibrate_accel(imu0_raw, 0)
-        imu1_cal = _calibrate_accel(imu1_raw, 1)
-        imu2_cal = _calibrate_accel(imu2_raw, 2)
+        imu0_cal = _calibrate_accel(list(self.IMU0.acceleration), 0)
+        imu1_cal = _calibrate_accel(list(self.IMU1.acceleration), 1)
+        imu2_cal = _calibrate_accel(list(self.IMU2.acceleration), 2)
 
         return _vote_and_average(imu0_cal[axis_number], imu1_cal[axis_number], imu2_cal[axis_number])
 
@@ -123,13 +128,9 @@ class IMU:
         if axis_number < 0 or axis_number > 2:
             raise ValueError("Axis must be x, y, or z")
 
-        imu0_raw = [self.IMU0.gyro[0], self.IMU0.gyro[1], self.IMU0.gyro[2]]
-        imu1_raw = [self.IMU1.gyro[0], self.IMU1.gyro[1], self.IMU1.gyro[2]]
-        imu2_raw = [self.IMU2.gyro[0], self.IMU2.gyro[1], self.IMU2.gyro[2]]
-
-        imu0_cal = _calibrate_gyro(imu0_raw, 0)
-        imu1_cal = _calibrate_gyro(imu1_raw, 1)
-        imu2_cal = _calibrate_gyro(imu2_raw, 2)
+        imu0_cal = _calibrate_gyro(list(self.IMU0.gyro), 0)
+        imu1_cal = _calibrate_gyro(list(self.IMU1.gyro), 1)
+        imu2_cal = _calibrate_gyro(list(self.IMU2.gyro), 2)
 
         return _vote_and_average(imu0_cal[axis_number], imu1_cal[axis_number], imu2_cal[axis_number])
 

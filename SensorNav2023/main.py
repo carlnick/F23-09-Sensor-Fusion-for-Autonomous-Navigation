@@ -8,7 +8,7 @@ import datetime as dt
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 import sys
-import time
+from time import time, perf_counter
 import numpy
 
 # MAIN PROGRAM
@@ -116,6 +116,8 @@ if __name__ == "__main__":
         # ani = animation.FuncAnimation(fig, animate, fargs=(xs, ys_r, ys_p, ys_y), interval=100)
         # plt.show()
         # Obtain sensor data
+
+
         vAccelerometer.x = imu.get_acceleration('x')
         vAccelerometer.y = imu.get_acceleration('y')
         vAccelerometer.z = imu.get_acceleration('z')
@@ -129,7 +131,8 @@ if __name__ == "__main__":
         
         
 
-        compFilter.currTime = time.time()
+        compFilter.currTime = time()
+        start_time = perf_counter()
 
         # Normalize vectors for orientation sensor fusion
         vNormAccel = vAccelerometer.normalize()
@@ -143,22 +146,26 @@ if __name__ == "__main__":
         # Correction Step
         compFilter.correctOrientation(vNormAccel, vNormMag)
 
-
         position, velocity = currentPositionVelocity(vAccelerometer, compFilter.qResult, velocity, position, compFilter.deltaTime)
-        print(position)
+        end_time = perf_counter()
+
+        data_rate = 1.0 / (end_time - start_time)
+
+        print(f"Data rate: {round(data_rate, 3)} Hz")
+        # print(position)
 
         # Obtain Corrected Orientation
         # compFilter.graphResult()
-#         if dataCount < 150:
-#             axis, angle = compFilter.toAxisAngle(compFilter.qResult)
-#             out_file.write(axis.__str__())
-#             out_file.write('\n')
-#             out_file.write(str(angle))
-#             out_file.write('\n')
-#             dataCount = dataCount + 1
-#         else: 
-#             out_file.close()
-#             sys.exit(0)
+        if dataCount < 150:
+            axis, angle = compFilter.toAxisAngle(compFilter.qResult)
+            out_file.write(axis.__str__())
+            out_file.write('\n')
+            out_file.write(str(angle))
+            out_file.write('\n')
+            dataCount = dataCount + 1
+        else: 
+            out_file.close()
+            sys.exit(0)
 
         #print(compFilter.qResult)
         euler = compFilter.toEuler(compFilter.qResult)
@@ -166,7 +173,7 @@ if __name__ == "__main__":
         pitch = round(euler.y, 2)
         yaw = round(euler.z, 2)
         
-        #print(f"Roll: {roll}, Pitch: {pitch}, Yaw: {yaw}")
+        # print(f"Roll: {roll}, Pitch: {pitch}, Yaw: {yaw}")
         
         # print(compFilter.toEuler(compFilter.qResult))
         # print(compFilter.qResult)

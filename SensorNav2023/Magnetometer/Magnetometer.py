@@ -2,30 +2,47 @@ import numpy as np
 import board
 import adafruit_mmc56x3 as magnetometer
 import adafruit_tca9548a as multiplexer
+from time import perf_counter
 
 
 # class for magnetometer subsystem
 class Magnetometer:
 
     # Magnetometer 0 calibration parameters
-    hard_iron0 = np.array([48.14984733, 4.19862553, 12.42200051])
-    soft_iron0 =  [[ 1.07950161,  0.00442799,  0.01123515],
- [ 0.00442799,  1.13734089, -0.00639259],
- [ 0.01123515, -0.00639259, 1.13929426]]
+    hard_iron0 = np.array([18.95431892, -11.04687584, 33.21854647])
+    soft_iron0 =   [[ 0.88047563,  0.00411774,  0.02185329],
+ [ 0.00411774,  0.93721178, -0.00319073],
+ [ 0.02185329, -0.00319073, 0.95804866]]
+
 
     # Magnetometer 1 calibration parameters
-    hard_iron1 = np.array([-126.8371323, 27.5346779, -57.45631552])
-    soft_iron1 =  [[ 1.06527986e+00,  2.06713210e-02, -1.02658230e-03],
- [ 2.06713210e-02,  1.08899968e+00, -8.31700341e-05],
- [-1.02658230e-03,-8.31700341e-05,  1.00621202e+00]]
+    hard_iron1 = np.array([ 40.36743418, -27.89601801, -66.39188061])
+    soft_iron1 =   [[ 0.85755641,  0.01986407,  0.01355724],
+ [ 0.01986407,  0.85973725, -0.00619216],
+ [ 0.01355724, -0.00619216,  0.79673811]]
+
 
 
     # Magnetometer 2 calibration parameters
-    hard_iron2 = np.array([15.41402626, -27.23083942, -14.3872628])
-    soft_iron2 = [[1.14568407e+00, 6.48283959e-04, 7.33334573e-05],
-                [6.48283959e-04,  1.15233447e+00, -1.16823200e-03],
-                [7.33334573e-05, -1.16823200e-03, 1.20095746e+00]]
+    hard_iron2 = np.array([-3.24180533, 15.11645376, -46.4294927])
+    soft_iron2 =  [[ 0.87312414, -0.0101684,  -0.0088778 ],
+ [-0.0101684,   0.90861816,  0.00288969],
+ [-0.0088778,   0.00288969,  0.92877805]]
 
+    def __init__(self):
+        mux = multiplexer.TCA9548A(board.I2C())
+        self.mag0 = magnetometer.MMC5603(mux[0])
+        self.mag1 = magnetometer.MMC5603(mux[3])
+        self.mag2 = magnetometer.MMC5603(mux[6])
+        
+        self.mag0.continuous_mode = True
+        self.mag1.continuous_mode = True
+        self.mag2.continuous_mode = True
+        
+        self.mag0.data_rate = 0
+        self.mag1.data_rate = 0
+        self.mag1.data_rate = 0
+        
 
     # voting function
     def __mag_voting(mag_one, mag_two, mag_three, threshold):
@@ -63,17 +80,12 @@ class Magnetometer:
     def __apply_calibration(mag, hard_iron, soft_iron):
         return np.matmul(soft_iron,  (mag - hard_iron).reshape(3,1))
 
-
     # main function to get calibrated and filtered magnetic field data
-    def get_magnetic(self):
-	
-        i2c = board.I2C()
-        mux = multiplexer.TCA9548A(i2c)
-        
+    def get_magnetic(self):        
         # get raw data
-        mag_0 = np.asarray(magnetometer.MMC5603(mux[0]).magnetic)
-        mag_1 = np.asarray(magnetometer.MMC5603(mux[3]).magnetic)
-        mag_2 = np.asarray(magnetometer.MMC5603(mux[6]).magnetic)
+        mag_0 = np.asarray(self.mag0.magnetic)
+        mag_1 = np.asarray(self.mag1.magnetic)
+        mag_2 = np.asarray(self.mag2.magnetic)
 
         # calibrate raw data
         cal_mag0 = Magnetometer.__apply_calibration(mag_0, Magnetometer.hard_iron0, Magnetometer.soft_iron0)
