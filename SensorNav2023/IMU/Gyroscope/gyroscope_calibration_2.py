@@ -38,7 +38,7 @@ def get_bias_offsets(imus: list[LSM6DSOX]) -> numpy.ndarray:
     for _ in range(num_samples):
         bias_offsets += [imus[0].gyro, imus[1].gyro, imus[2].gyro]
 
-    bias_offsets /= num_samples * -1
+    bias_offsets /= num_samples * -1.0
     return bias_offsets
 
 
