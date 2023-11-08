@@ -70,7 +70,9 @@ class Magnetometer(object):
   def run(self):
     i2c = board.I2C()
     mux = multiplexer.TCA9548A(i2c)
-    sensor = magnetometer.MMC5603(mux[0])
+    sensor = magnetometer.MMC5603(mux[6])
+    sensor.continuous_mode = True
+    sensor.data_rate = 1000
     
     # Deque for axes
     mag_x = []
@@ -102,7 +104,7 @@ class Magnetometer(object):
         if len(mag_x) == HISTORY_SIZE:
           anim.event_source.stop()
         # Pause the plot for INTERVAL seconds 
-        plt.pause(INTERVAL)
+        #plt.pause(INTERVAL)
 
     fig.canvas.mpl_connect('button_press_event', onClick)    
     anim = FuncAnimation(fig, animate, fargs = (0), cache_frame_data=False)

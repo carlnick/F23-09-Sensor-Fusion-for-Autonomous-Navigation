@@ -27,7 +27,7 @@ class Quaternion:
         self.q3 = q3
 
     @staticmethod
-    def rotateMultipy(quat, vector):
+    def rotateMultiply(quat, vector):
         result = Vector()
         result.x = (vector.x * (quat.q0**2 + quat.q1**2 - quat.q2**2 - quat.q3**2) 
                     + vector.y * (2 * (quat.q1 * quat.q2 - quat.q0 * quat.q3)) 

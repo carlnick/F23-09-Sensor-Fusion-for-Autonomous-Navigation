@@ -23,10 +23,7 @@ if __name__ == "__main__":
 
     # Initialize Gyroscope Vector
     vGyroscope = Vector(*imu.get_gyroscope())
-    vGyroscope.x = vGyroscope.x
-    vGyroscope.y = vGyroscope.y
-    vGyroscope.z = vGyroscope.z
-
+    
     # Initialize Magnetometer Vector
     vMagnetometer = Vector(*mag.get_magnetic())
 
@@ -123,9 +120,9 @@ if __name__ == "__main__":
 
         vAccelerometer.set(*imu.get_acceleration())
         vGyroscope.set(*imu.get_gyroscope())
+        compFilter.currTime = time()
         vMagnetometer.set(*mag.get_magnetic())
 
-        compFilter.currTime = time()
         # Normalize vectors for orientation sensor fusion
         vNormAccel = vAccelerometer.normalize()
         vNormMag = vMagnetometer.normalize()

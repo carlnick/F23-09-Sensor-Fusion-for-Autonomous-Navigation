@@ -19,45 +19,38 @@ import random
 from SensorFusion.Quaternion import Quaternion
 from SensorFusion.Vector import Vector
 
-START_VALUE:float = -55555555 # placeholder value to start with, out of range of measurements
-ZERO:float = 0.0 # zero
-MAG_THRESHOLD:float = 50 # Assuming data is in microTeslas
-MAG_SUM_THRESHOLD: float = 100
-MAG_DELTA_THRESHOLD:float = 1 # Needs to be reviewed once data is obtained
-
-
 # Placeholder values, currently unknown what should be within these
 threshaccel = Vector()
 threshgyro = Vector()
-thresh_mag = Vector(x=MAG_THRESHOLD, y=MAG_THRESHOLD, z=MAG_THRESHOLD)
-
-def threshold_mag(data:Vector, last_data:Vector):
-    # at beginning, the return is the last stored valid data
-    mag_final:Vector = Vector(x=last_data.x, y=last_data.y, z=last_data.z)
-
-    # check sum of axes
-    if abs(data.sum()) > MAG_SUM_THRESHOLD:
-        return mag_final
-
-    # check each axis for overall and delta thresholds
-    if data.x < thresh_mag.x and data.x > -thresh_mag.x:
-        if abs(data.x - last_data.x) < MAG_DELTA_THRESHOLD:
-            mag_final.x = data.x
-        else: print("magnetometer x value exceeds delta threshold")
-    else: print("magnetometer x value exceeds threshold")
-    if data.y < thresh_mag.y and data.y > -thresh_mag.y:
-        if abs(data.y - last_data.y) < MAG_DELTA_THRESHOLD:
-            mag_final.y = data.y
-        else: print("magnetometer y value exceeds delta threshold")
-    else: print("magnetometer y value exceeds threshold")
-    if data.z < thresh_mag.z and data.z > -thresh_mag.z:
-        if abs(data.z - last_data.z) < MAG_DELTA_THRESHOLD:
-            mag_final.z = data.z
-        else: print("magnetometer z value exceeds delta threshold")
-    else: print("magnetometer z value exceeds threshold")
-
-    return mag_final
-
+# thresh_mag = Vector(x=MAG_THRESHOLD, y=MAG_THRESHOLD, z=MAG_THRESHOLD)
+# 
+# def threshold_mag(data:Vector, last_data:Vector):
+#     # at beginning, the return is the last stored valid data
+#     mag_final:Vector = Vector(x=last_data.x, y=last_data.y, z=last_data.z)
+# 
+#     # check sum of axes
+#     if abs(data.sum()) > MAG_SUM_THRESHOLD:
+#         return mag_final
+# 
+#     # check each axis for overall and delta thresholds
+#     if data.x < thresh_mag.x and data.x > -thresh_mag.x:
+#         if abs(data.x - last_data.x) < MAG_DELTA_THRESHOLD:
+#             mag_final.x = data.x
+#         else: print("magnetometer x value exceeds delta threshold")
+#     else: print("magnetometer x value exceeds threshold")
+#     if data.y < thresh_mag.y and data.y > -thresh_mag.y:
+#         if abs(data.y - last_data.y) < MAG_DELTA_THRESHOLD:
+#             mag_final.y = data.y
+#         else: print("magnetometer y value exceeds delta threshold")
+#     else: print("magnetometer y value exceeds threshold")
+#     if data.z < thresh_mag.z and data.z > -thresh_mag.z:
+#         if abs(data.z - last_data.z) < MAG_DELTA_THRESHOLD:
+#             mag_final.z = data.z
+#         else: print("magnetometer z value exceeds delta threshold")
+#     else: print("magnetometer z value exceeds threshold")
+# 
+#     return mag_final
+# 
 def pitch_roll_yaw(accel_data:Vector, mag_data:Vector):
     p_r_y:Vector = Vector()
 
@@ -121,7 +114,7 @@ def orientation(accel_data:Vector, mag_data:Vector = None):
         qAccelerometer.set_q2(0)
         qAccelerometer.set_q3((accel_data.x)/math.sqrt(2*(1-accel_data.z)))
 
-    rotatedMagField = Quaternion.rotateMultipy(qAccelerometer.inverse(), mag_data)
+    rotatedMagField = Quaternion.rotateTMultiply(qAccelerometer, mag_data)
     gamma = rotatedMagField.x**2 + rotatedMagField.y**2
 
     if rotatedMagField.x >= 0:
