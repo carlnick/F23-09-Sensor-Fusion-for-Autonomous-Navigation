@@ -1,22 +1,22 @@
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 from IMU import IMU
+from pyrr import Vector3
 
 imu = IMU([1, 4, 7])
 
+GRAVITY = 9.7976
+
 # Parameters
-x_len = 100  # Number of points to display
-y_range = [-2, 2]  # Range of possible Y values to display
+x_len = 300  # Number of points to display
+y_range = [-1.5, 1.5]  # Range of possible Y values to display
 
 # Create figure for plotting
 fig = plt.figure()
-ax = fig.add_subplot(2, 3, 1)
-bx = fig.add_subplot(2, 3, 2)
-cx = fig.add_subplot(2, 3, 3)
-dx = fig.add_subplot(2, 3, 4)
-ex = fig.add_subplot(2, 3, 5)
-fx = fig.add_subplot(2, 3, 6)
-xs = list(range(0, 100))
+ax = fig.add_subplot(1, 2, 1)
+bx = fig.add_subplot(1, 2, 2)
+
+xs = list(range(0, x_len))
 ya = [0] * x_len
 yb = [0] * x_len
 yc = [0] * x_len
@@ -25,42 +25,38 @@ ye = [0] * x_len
 yf = [0] * x_len
 ax.set_ylim(y_range)
 bx.set_ylim(y_range)
-cx.set_ylim(y_range)
-dx.set_ylim(y_range)
-ex.set_ylim(y_range)
-fx.set_ylim(y_range)
 
-line, = ax.plot(xs, ya)
-line2, = bx.plot(xs, yb)
-line3, = cx.plot(xs, yc)
-line4, = dx.plot(xs, yd)
-line5, = ex.plot(xs, ye)
-line6, = fx.plot(xs, yf)
+line, = ax.plot(xs, ya, color='red', label='X-axis')
+line2, = ax.plot(xs, yb, color='green', label='Y-axis')
+line3, = ax.plot(xs, yc, color='blue', label='Z-axis')
+line4, = bx.plot(xs, yd, color='red', label='X-axis')
+line5, = bx.plot(xs, ye, color='green', label='Y-axis')
+line6, = bx.plot(xs, yf, color='blue', label='Z-axis')
 
-ax.set_title("Acceleration in the X-axis")
-bx.set_title("Acceleration in the Y-axis")
-cx.set_title("Acceleration in the Z-axis")
+ax.legend()
+bx.legend()
 
-dx.set_title("Angular Velocity in the X-axis")
-ex.set_title("Angular Velocity in the Y-axis")
-fx.set_title("Angular Velocity in the Z-axis")
-
-ax.set_ylabel("Acceleration in meters per second^2")
-dx.set_ylabel("Angular Velocity in degrees per second")
+ax.set_title("Raw Acceleration in g")
+bx.set_title("Calibrated Acceleration in g")
 
 
 # This function is called periodically from FuncAnimation
 def animate(i, ya, yb, yc, yd, ye, yf):
     # Add y to list
-    accelerometer_data = imu.get_acceleration()
-    gyroscope_data = imu.get_gyroscope()
 
-    ya.append(accelerometer_data[0])
-    yb.append(accelerometer_data[1])
-    yc.append(accelerometer_data[2])
-    yd.append(gyroscope_data[0])
-    ye.append(gyroscope_data[1])
-    yf.append(gyroscope_data[2])
+    raw_acceleration = Vector3(imu.IMUs[0].acceleration)
+    calibrated_acceleration = Vector3(imu.get_acceleration())
+
+    raw_acceleration /= GRAVITY
+    calibrated_acceleration /= GRAVITY
+
+    ya.append(raw_acceleration[0])
+    yb.append(raw_acceleration[1])
+    yc.append(raw_acceleration[2])
+
+    yd.append(calibrated_acceleration[0])
+    ye.append(calibrated_acceleration[1])
+    yf.append(calibrated_acceleration[2])
 
     # Limit y list to set number of items
     ya = ya[-x_len:]

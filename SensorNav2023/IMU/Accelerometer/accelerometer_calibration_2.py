@@ -12,6 +12,7 @@ from typing import Literal
 
 ALLOWED_PORTS = Literal[0, 1, 2, 3, 4, 5, 6, 7]
 CALIBRATION_MEASUREMENTS = 1000
+GRAVITY = 9.7976
 
 
 def initialize_sensors(imu_ports: list[ALLOWED_PORTS]) -> list[LSM6DSOX]:
@@ -24,14 +25,12 @@ def initialize_sensors(imu_ports: list[ALLOWED_PORTS]) -> list[LSM6DSOX]:
 
 
 def get_raw_data_avg(imu):
-    acceleration_sums = numpy.zeros(4)
+    acceleration_sums = numpy.zeros(3)
     for _ in range(CALIBRATION_MEASUREMENTS):
-        acceleration_sums[0] += imu.acceleration[0]
-        acceleration_sums[1] += imu.acceleration[1]
-        acceleration_sums[2] += imu.acceleration[2]
-        acceleration_sums[3] += 1
+        acceleration_sums += imu.acceleration
 
     acceleration_averages = acceleration_sums / float(CALIBRATION_MEASUREMENTS)
+    acceleration_averages = numpy.append(acceleration_averages, 1.0)
 
     return acceleration_averages
 
@@ -63,7 +62,9 @@ if __name__ == '__main__':
         input(f"Orient system with {calibration_directions[row]} and press enter to continue")
         get_raw_data_row(imus, [imu0_raw, imu1_raw, imu2_raw], row)
 
-    gravity_matrix = numpy.array([[1, 0, 0], [-1, 0, 0], [0, 1, 0], [0, -1, 0], [0, 0, 1], [0, 0, -1]])
+    gravity_matrix = numpy.array(
+        [[GRAVITY, 0.0, 0.0], [-GRAVITY, 0.0, 0.0], [0.0, GRAVITY, 0.0], [0.0, -GRAVITY, 0.0], [0.0, 0.0, GRAVITY],
+         [0.0, 0.0, -GRAVITY]])
 
     imu0_calibration_matrix = get_calibration_matrix(imu0_raw, gravity_matrix)
     imu1_calibration_matrix = get_calibration_matrix(imu1_raw, gravity_matrix)
