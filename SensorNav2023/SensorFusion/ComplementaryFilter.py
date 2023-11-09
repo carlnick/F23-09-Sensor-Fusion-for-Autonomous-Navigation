@@ -37,6 +37,7 @@ class ComplementaryFilter:
         self.predictedGravity = Vector()
         self.epsilon = 0.95
         self.alpha_const = 0.5
+        self.beta_const = 0.5
         self.unit_quat = Quaternion(1,0,0,0)
 
         self.qResult = Quaternion()
@@ -169,7 +170,7 @@ class ComplementaryFilter:
         delta_Mag.q2 = 0
         delta_Mag.q3 = vWorldFrameMag.y / math.sqrt(2 * (gamma + vWorldFrameMag.x * math.sqrt(gamma)))
         # compute alpha weight
-        weight = self.alpha_const #* self.compute_alpha(local_frame_acceleration)
+        weight = self.beta_const #* self.compute_alpha(local_frame_acceleration)
         # complete LERP or SLERP
         # if delta_Mag.q0 > self.epsilon:
         lerp_quat = (1- weight) * self.unit_quat + weight * delta_Mag
