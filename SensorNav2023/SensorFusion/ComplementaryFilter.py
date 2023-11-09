@@ -36,8 +36,8 @@ class ComplementaryFilter:
 
         self.predictedGravity = Vector()
         self.epsilon = 0.95
-        self.alpha_const = 0.5
-        self.beta_const = 0.5
+        self.alpha_const = 1.0
+        self.beta_const = 0.0
         self.unit_quat = Quaternion(1,0,0,0)
 
         self.qResult = Quaternion()
@@ -263,12 +263,12 @@ class ComplementaryFilter:
         sinr_cosp = 2 * (q.q0 * q.q1 + q.q2 * q.q3)
         cosr_cosp = 1 - 2 * (q.q1 * q.q1 + q.q2 * q.q2)
         angles.x = math.atan2(sinr_cosp, cosr_cosp) * 180 / math.pi
-
+        angles.x = (angles.x + 360) % 360;
         # pitch (y-axis rotation)
         sinp = math.sqrt(math.fabs(1 + 2 * (q.q0 * q.q2 - q.q1 * q.q3)))
         cosp = math.sqrt(math.fabs(1 - 2 * (q.q0 * q.q2 - q.q1 * q.q3)))
         angles.y = (2 * math.atan2(sinp, cosp) - math.pi / 2) * 180 / math.pi
-
+        angles.x = (angles.x + 360) % 360;
         # yaw (z-axis rotation)
         siny_cosp = 2 * (q.q0 * q.q3 + q.q1 * q.q2)
         cosy_cosp = 1 - 2 * (q.q2 * q.q2 + q.q3 * q.q3)

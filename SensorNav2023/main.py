@@ -149,7 +149,7 @@ if __name__ == "__main__":
 
         # Obtain Corrected Orientation
         # compFilter.graphResult()
-#         if dataCount < 150:
+#         if dataCount < 500:
 #             axis, angle = compFilter.toAxisAngle(compFilter.qResult)
 #             out_file.write(axis.__str__())
 #             out_file.write('\n')

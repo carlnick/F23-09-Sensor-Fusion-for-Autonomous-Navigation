@@ -55,5 +55,5 @@ def animate(i):
     # plt.ylabel('Top to bottom: Roll, Pitch, Yaw')
     return vec1, vec2, vec3
 # Set up plot to call animate() function periodically
-ani = animation.FuncAnimation(fig, animate)
+ani = animation.FuncAnimation(fig, animate, blit=False, interval=50)
 plt.show()
