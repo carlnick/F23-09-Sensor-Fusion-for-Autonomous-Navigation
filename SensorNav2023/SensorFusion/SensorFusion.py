@@ -152,9 +152,9 @@ def IMUthreshold(accelerometer, gyroscope, accel, gyro):
 # Find the current position & velocity of the object
 def currentPositionVelocity(acceleration, quaternion, prevVel, prevPos, timeDelta):
     gravity = Vector()
-    gravity.x = 2 * (quaternion.q1 * quaternion.q3 - quaternion.q0 * quaternion.q2)
-    gravity.y = 2 * (quaternion.q0 * quaternion.q1 + quaternion.q2 * quaternion.q3)
-    gravity.z = quaternion.q0**2 - quaternion.q1**2 - quaternion.q2**2 + quaternion.q3**2
+    gravity.x = 2 * (quaternion.q1 * quaternion.q3 - quaternion.q0 * quaternion.q2) * 9.8
+    gravity.y = 2 * (quaternion.q0 * quaternion.q1 + quaternion.q2 * quaternion.q3) * 9.8
+    gravity.z = 9.8 * (quaternion.q0**2 - quaternion.q1**2 - quaternion.q2**2 + quaternion.q3**2)
 
     linearAccel = Vector()
 
@@ -163,6 +163,8 @@ def currentPositionVelocity(acceleration, quaternion, prevVel, prevPos, timeDelt
     linearAccel.z = acceleration.z - gravity.z
 
     print(linearAccel)
+    print(gravity)
+    print(acceleration)
 
     velocity = Vector()
 
