@@ -42,11 +42,11 @@ if __name__ == "__main__":
     position = Vector(0, 0, 0)
     velocity = Vector(0, 0, 0)
 
-    out_file = open('SensorFusionOutput.txt', 'w')
+    out_file = open('SensorFusionOutputEuler.txt', 'w')
     dataCount = 0
     num_samples = 0
     total_time = 0.0
-
+    
     while True:
         # Create figure for plotting
         # fig = plt.figure()
@@ -145,27 +145,33 @@ if __name__ == "__main__":
         data_rate = num_samples / total_time
         
         print(f"Data rate: {round(data_rate, 3)} Hz")
-        print(position)
-
+        # print(position)
+        euler = Vector()
+        elev, azim, roll = compFilter.quat_to_elev_azim_roll(compFilter.qResult.normalize())
+        
+        # ax.view_init(elev, azim, roll)
+        plt.pause(0.0001)
+        
         # Obtain Corrected Orientation
         # compFilter.graphResult()
-#         if dataCount < 500:
-#             axis, angle = compFilter.toAxisAngle(compFilter.qResult)
+        if dataCount < 600:
+            # axis, angle = compFilter.toAxisAngle(compFilter.qResult)
+            out_file.write(Vector(elev, azim, roll).__str__())
+            out_file.write('\n')
 #             out_file.write(axis.__str__())
 #             out_file.write('\n')
-#             out_file.write(str(angle))
+#             out_file.write(angle.__str__())
 #             out_file.write('\n')
-#             dataCount = dataCount + 1
-#         else:
-#             out_file.close()
-#             sys.exit(0)
+        else:
+            out_file.close()
+            sys.exit(0)
 
         # print(compFilter.qResult)
         euler = compFilter.toEuler(compFilter.qResult)
         roll = round(euler.x, 2)
         pitch = round(euler.y, 2)
         yaw = round(euler.z, 2)
-
+# 
         print(f"Roll: {roll}, Pitch: {pitch}, Yaw: {yaw}")
 
         # print(compFilter.toEuler(compFilter.qResult))

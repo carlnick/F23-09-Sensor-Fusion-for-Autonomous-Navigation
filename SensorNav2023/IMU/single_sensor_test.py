@@ -7,9 +7,9 @@ from time import perf_counter
 def init_imu() -> LSM6DSOX:
     imu = LSM6DSOX(I2C())
     imu.accelerometer_range = AccelRange.RANGE_16G
-    imu.accelerometer_data_rate = Rate.RATE_833_HZ
+    imu.accelerometer_data_rate = Rate.RATE_1_66K_HZ
     imu.gyro_range = GyroRange.RANGE_125_DPS
-    imu.gyro_data_rate = Rate.RATE_833_HZ
+    imu.gyro_data_rate = Rate.RATE_1_66K_HZ
     return imu
 
 

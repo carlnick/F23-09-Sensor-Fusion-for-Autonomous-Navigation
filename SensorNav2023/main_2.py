@@ -47,7 +47,7 @@ if __name__ == "__main__":
     position = Vector3([0, 0, 0])
     velocity = Vector3([0, 0, 0])
 
-    out_file = open('SensorFusionOutput.txt', 'w')
+    out_file = open('SensorFusionOutputEuler.txt', 'w')
     dataCount = 0
 
     num_samples = 0
@@ -152,22 +152,19 @@ if __name__ == "__main__":
 
         print(f"Data rate: {round(num_samples / total_time, 3)} Hz")
         print(position)
-
+        euler = Vector()
         # Obtain Corrected Orientation
         # compFilter.graphResult()
-        #         if dataCount < 150:
-        #             axis, angle = compFilter.toAxisAngle(compFilter.qResult)
-        #             out_file.write(axis.__str__())
-        #             out_file.write('\n')
-        #             out_file.write(str(angle))
-        #             out_file.write('\n')
-        #             dataCount = dataCount + 1
-        #         else:
-        #             out_file.close()
-        #             sys.exit(0)
+        if dataCount < 1000:
+            euler = compFilter.toEuler(compFilter.qResult)
+            out_file.write(euler.__str__())
+            out_file.write('\n')
+        else:
+            out_file.close()
+            sys.exit(0)
 
-        # print(compFilter.q_result)
-        euler = compFilter.to_euler(compFilter.q_result)
+        # print(compFilter.qResult)
+        # euler = compFilter.toEuler(compFilter.qResult)
         roll = round(euler.x, 2)
         pitch = round(euler.y, 2)
         yaw = round(euler.z, 2)

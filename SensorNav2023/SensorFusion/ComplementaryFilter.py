@@ -2,6 +2,7 @@ from SensorFusion.Quaternion import Quaternion
 from SensorFusion.Vector import Vector
 import time
 import math
+import numpy as np
 
 
 import datetime as dt
@@ -278,6 +279,16 @@ class ComplementaryFilter:
             angles.z += 360
 
         return angles
+    
+    def quat_to_elev_azim_roll(self, q:Quaternion, angle_offsets=(0, 0, 0)):
+        q0, q1, q2, q3 = q.q0, q.q1, q.q2, q.q3
+        phi = np.arctan2(-2*q1*q2 + 2*q0*q3, q1**2 + q0**2 - q3**2 - q2**2)
+        theta = np.arcsin(2*q1*q3 + 2*q0*q2)
+        psi = np.arctan2(-2*q2*q3 + 2*q0*q1, q3**2 - q2**2 - q1**2 + q0**2)
+        azim = np.rad2deg(phi) + angle_offsets[0]
+        elev = np.rad2deg(-theta) + angle_offsets[1]
+        roll = np.rad2deg(psi) + angle_offsets[2]
+        return elev, azim, roll
 
     def toAxisAngle(self, q:Quaternion):
         axis = Vector()
