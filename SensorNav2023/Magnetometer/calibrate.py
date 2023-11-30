@@ -1,3 +1,5 @@
+# This code was adapted from this GitHub repository: https://github.com/nliaudat/magnetometer_calibration 
+
 import numpy as np
 from scipy import linalg
 from matplotlib import pyplot as plt
@@ -11,7 +13,10 @@ import datetime
 import matplotlib.dates as mdates
 from collections import deque
 
-# sensor indexes
+# MUX select line for magnetometer to calibrate
+sensor_to_calibrate_index = 6
+
+# sensor axis indexes
 X = 0
 Y = 1
 Z = 2
@@ -70,7 +75,7 @@ class Magnetometer(object):
   def run(self):
     i2c = board.I2C()
     mux = multiplexer.TCA9548A(i2c)
-    sensor = magnetometer.MMC5603(mux[6])
+    sensor = magnetometer.MMC5603(mux[sensor_to_calibrate_index])
     sensor.continuous_mode = True
     sensor.data_rate = 1000
     
@@ -114,11 +119,6 @@ class Magnetometer(object):
     
     
     data = np.array([[mag_x[i], mag_y[i], mag_z[i]] for i in range(len(mag_x))])
-    # ~ data = np.loadtxt("mag_out_sample.txt",delimiter=',')
-    # ~ print(type(data))
-    print("shape of data:",data.shape)
-    #print("datatype of data:",data.dtype)
-    print("First 5 rows raw:\n", data[:5])
     
     # ellipsoid fit
     s = np.array(data).T
@@ -149,41 +149,15 @@ class Magnetometer(object):
         zm_cal = xm_off *  self.A_1[2,0] + ym_off *  self.A_1[2,1]  + zm_off *  self.A_1[2,2] 
 
         result = np.append(result, np.array([xm_cal, ym_cal, zm_cal]) )#, axis=0 )
-        #result_hard_iron_bias = np.append(result, np.array([xm_off, ym_off, zm_off]) )
 
     result = result.reshape(-1, 3)
     
-    # ~ ax.scatter(result[:,0], result[:,1], result[:,2], marker='o', color='g')
     ax.set_aspect(1)
     ax.scatter(result[:,0], result[:,1], color='r', label='X VS Y')
     ax.scatter(result[:,1], result[:,2], color='g', label='Y VS Z')
     ax.scatter(result[:,2], result[:,0], color='b', label='Z VS X')
     ax.legend()
     plt.show()
-    
-    print("First 5 rows calibrated:\n", result[:5])
-    np.savetxt('out.txt', result, fmt='%f', delimiter=' ,')
-
-    print("*************************" )        
-    print("code to paste : " )
-    print("*************************" )  
-    print("float hard_iron_bias_x = ", float(self.b[0]), ";")
-    print("float hard_iron_bias_y = " , float(self.b[1]), ";")
-    print("float hard_iron_bias_z = " , float(self.b[2]), ";")
-    print("\n")
-    print("double soft_iron_bias_xx = " , float(self.A_1[0,0]), ";")
-    print("double soft_iron_bias_xy = " , float(self.A_1[1,0]), ";")
-    print("double soft_iron_bias_xz = " , float(self.A_1[2,0]), ";")
-    print("\n")
-    print("double soft_iron_bias_yx = " , float(self.A_1[0,1]), ";")
-    print("double soft_iron_bias_yy = " , float(self.A_1[1,1]), ";")
-    print("double soft_iron_bias_yz = " , float(self.A_1[2,1]), ";")
-    print("\n")
-    print("double soft_iron_bias_zx = " , float(self.A_1[0,2]), ";")
-    print("double soft_iron_bias_zy = " , float(self.A_1[1,2]), ";")
-    print("double soft_iron_bias_zz = " , float(self.A_1[2,2]), ";")
-    print("\n")
-
 
 
   def __ellipsoid_fit(self, s):
