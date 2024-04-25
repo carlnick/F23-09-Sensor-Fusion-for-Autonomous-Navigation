@@ -1,5 +1,7 @@
 from SensorFusion.Vector import Vector
 import math
+import numpy as np
+
 class Quaternion:
 
     def __init__(self, q0=1.0, q1=0.0, q2=0.0, q3=0.0):
@@ -25,6 +27,9 @@ class Quaternion:
         self.q1 = q1
         self.q2 = q2
         self.q3 = q3
+
+    def scale(self, scalar):
+        return Quaternion(self.q0 * scalar, self.q1 * scalar, self.q2 * scalar, self.q3 * scalar)
 
     @staticmethod
     def rotateMultiply(quat, vector):
@@ -156,3 +161,69 @@ class Quaternion:
 
     def __str__(self):
         return "[%.8f, %.8f, %.8f, %.8f]" % (self.q0, self.q1, self.q2, self.q3)
+
+    @staticmethod
+    def from_two_vectors(v1, v2):
+        # v1 is the accelerometer vector (should align with -Z global axis)
+        # v2 is the magnetometer vector (should align with X global axis)
+        # Global frame assumed to be: X (North), Y (East), Z (Down)
+        
+        # Normalize input vectors
+        v1 = v1.normalize()
+        v2 = v2.normalize()
+
+        # Orthogonalize v2 with respect to v1
+        v2_orth = (v2 - v1 * v1.dot(v2)).normalize()
+
+        # v3 orthogonal to both v1 and v2_orth
+        v3 = v1.cross(v2_orth).normalize()
+
+        # Constructing rotation matrix from the unit vectors
+        R = np.array([
+            [v2_orth.x, v2_orth.y, v2_orth.z],
+            [v3.x, v3.y, v3.z],
+            [-v1.x, -v1.y, -v1.z]
+        ])
+
+        # Convert rotation matrix to quaternion
+        tr = R[0, 0] + R[1, 1] + R[2, 2]
+        if tr > 0:
+            S = np.sqrt(tr+1.0) * 2  # S=4*q0
+            qw = 0.25 * S
+            qx = (R[2, 1] - R[1, 2]) / S
+            qy = (R[0, 2] - R[2, 0]) / S
+            qz = (R[1, 0] - R[0, 1]) / S
+        elif (R[0, 0] > R[1, 1]) and (R[0, 0] > R[2, 2]):
+            S = np.sqrt(1.0 + R[0, 0] - R[1, 1] - R[2, 2]) * 2  # S=4*qx
+            qw = (R[2, 1] - R[1, 2]) / S
+            qx = 0.25 * S
+            qy = (R[0, 1] + R[1, 0]) / S
+            qz = (R[0, 2] + R[2, 0]) / S
+        elif R[1, 1] > R[2, 2]:
+            S = np.sqrt(1.0 + R[1, 1] - R[0, 0] - R[2, 2]) * 2  # S=4*qy
+            qw = (R[0, 2] - R[2, 0]) / S
+            qx = (R[0, 1] + R[1, 0]) / S
+            qy = 0.25 * S
+            qz = (R[1, 2] + R[2, 1]) / S
+        else:
+            S = np.sqrt(1.0 + R[2, 2] - R[0, 0] - R[1, 1]) * 2  # S=4*qz
+            qw = (R[1, 0] - R[0, 1]) / S
+            qx = (R[0, 2] + R[2, 0]) / S
+            qy = (R[1, 2] + R[2, 1]) / S
+            qz = 0.25 * S
+        return Quaternion(qw, qx, qy, qz)
+
+    @staticmethod
+    def from_angular_velocity(omega, dt):
+        wq = Quaternion(0, omega.x * dt/2, omega.y * dt/2, omega.z * dt/2)
+        return wq
+
+    def multiply(self, other):
+        q0 = self.q0 * other.q0 - self.q1 * other.q1 - self.q2 * other.q2 - self.q3 * other.q3
+        q1 = self.q0 * other.q1 + self.q1 * other.q0 + self.q2 * other.q3 - self.q3 * other.q2
+        q2 = self.q0 * other.q2 - self.q1 * other.q3 + self.q2 * other.q0 + self.q3 * other.q1
+        q3 = self.q0 * other.q3 + self.q1 * other.q2 - self.q2 * other.q1 + self.q3 * other.q0
+        return Quaternion(q0, q1, q2, q3)
+
+    def to_array(self):
+        return np.array([self.q0, self.q1, self.q2, self.q3])

@@ -110,10 +110,18 @@ class IMU:
 
     def get_acceleration(self):
         raw_data = [list(self.IMUs[0].acceleration), list(self.IMUs[1].acceleration), list(self.IMUs[2].acceleration)]
+        #print("Accelerometer Raw Data: ")
+        #print(raw_data)
         calibrated_data = _calibrate_accel(raw_data)
+        #print("Accelerometer Voted Data: ")
+        #print(_vote_and_average(calibrated_data))
         return _vote_and_average(calibrated_data)
 
     def get_gyroscope(self):
         raw_data = list([self.IMUs[0].gyro, self.IMUs[1].gyro, self.IMUs[2].gyro])
+        #print("Gyroscope Raw Data: ")
+        #print(raw_data)
         calibrated_data = _calibrate_gyro(raw_data)
+        #print("Gyroscope Voted Data: ")
+        #print(_vote_and_average(calibrated_data))
         return _vote_and_average(calibrated_data)

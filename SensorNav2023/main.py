@@ -9,7 +9,12 @@ import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 import sys
 from time import time, perf_counter
-import numpy
+import numpy as np
+
+from SensorFusion.Quaternion import Quaternion
+
+def vector_to_numpy(v):
+    return np.array([v.x, v.y, v.z])
 
 # MAIN PROGRAM
 if __name__ == "__main__":
@@ -144,7 +149,8 @@ if __name__ == "__main__":
         
         data_rate = num_samples / total_time
         
-        print(f"Data rate: {round(data_rate, 3)} Hz")
+        #print(f"Data rate: {round(data_rate, 3)} Hz") UNCOMMENT
+
         # print(position)
         euler = Vector()
         elev, azim, roll = compFilter.quat_to_elev_azim_roll(compFilter.qResult.normalize())
@@ -172,7 +178,7 @@ if __name__ == "__main__":
         pitch = round(euler.y, 2)
         yaw = round(euler.z, 2)
 # 
-        print(f"Roll: {roll}, Pitch: {pitch}, Yaw: {yaw}")
+        #print(f"Roll: {roll}, Pitch: {pitch}, Yaw: {yaw}") UNCOMMENT
 
         # print(compFilter.toEuler(compFilter.qResult))
         # print(compFilter.qResult)

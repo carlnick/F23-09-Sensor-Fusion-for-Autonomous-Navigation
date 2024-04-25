@@ -72,6 +72,8 @@ class Magnetometer:
         avg_y = np.mean(y_arr)
         avg_z = np.mean(z_arr)
 
+        #print("Magnetometer Voted Data: ")
+        #print(avg_x, avg_y, avg_z)
         return [avg_x, avg_y, avg_z]
 
     # applies hard and soft iron calibration
@@ -84,6 +86,9 @@ class Magnetometer:
         mag_0 = np.asarray(self.mag0.magnetic)
         mag_1 = np.asarray(self.mag1.magnetic)
         mag_2 = np.asarray(self.mag2.magnetic)
+
+        #print("Magnetometer Raw Data: ")
+        #print(mag_0, mag_1, mag_2)
 
         # calibrate raw data
         cal_mag0 = self._apply_calibration(mag_0, Magnetometer.hard_iron0, Magnetometer.soft_iron0)
