@@ -4,11 +4,13 @@ import adafruit_tca9548a
 import time
 from typing import Literal
 from math import pi
+import math
+import numpy as np
 
 EARTH_RADIUS_METERS = 6371000
 
 # GPS initialization commands
-GGA_RMC_COMMAND = b"PMTK314,0,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0"
+GGA_RMC_COMMAND = b"PMTK314,0,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0*28\r\n"
 UPDATE_RATE_COMMAND = b"PMTK220,"
 
 # GPS default update rate in milliseconds
@@ -21,7 +23,7 @@ allowed_ports = Literal[0, 1, 2, 3, 4, 5, 6, 7]
 
 
 class GPS:
-    def __init__(self, gps_port: allowed_ports, update_rate_ms: int = DEFAULT_UPDATE_RATE_MS):
+    def __init__(self, gps_port: int = 5, update_rate_ms: int = DEFAULT_UPDATE_RATE_MS):
         """
         Wrapper class for the Adafruit PA1010D GPS module
         :param gps_port: The port on the multiplexer that the GPS is connected to
@@ -62,9 +64,10 @@ class GPS:
         attempt_count = 0
 
         # check if GPS has fix
-        while (not self.GPS.has_fix) and (attempt_count < GPS_FIX_ATTEMPT_LIMIT):
+        while ((not self.GPS.has_fix) and (attempt_count < GPS_FIX_ATTEMPT_LIMIT)):
             # if not, wait and check again
-            time.sleep(1)
+            print("GPS could not get a fix - attempting to retry")
+            time.sleep(0.1)
             self.GPS.update()
             attempt_count += 1
 
@@ -79,15 +82,19 @@ class GPS:
 
         current_position = [self.GPS.latitude, self.GPS.longitude, self.GPS.altitude_m]
 
+        # Distance away between current GPS position and initial GPS position
         latitude_difference = current_position[0] - self.position_degrees[0]
         longitude_difference = current_position[1] - self.position_degrees[1]
         altitude_difference = current_position[2] - self.position_degrees[2]
 
-        x_difference = self._deg_to_m(latitude_difference)
-        y_difference = self._deg_to_m(longitude_difference)
-        z_difference = altitude_difference
+        x_difference_mtrs = self._deg_to_m(latitude_difference)
+        y_difference_mtrs = self._deg_to_m(longitude_difference)
+        z_difference_mtrs = altitude_difference
 
-        return [x_difference, y_difference, z_difference]
+        dist_mtrs = math.sqrt(x_difference_mtrs**2 + y_difference_mtrs**2) 
+        azimuth = np.arctan2(y_difference_mtrs, x_difference_mtrs)
+
+        return x_difference_mtrs, y_difference_mtrs, z_difference_mtrs, dist_mtrs, azimuth
 
     def _get_initial_position(self):
         self._get_fix()

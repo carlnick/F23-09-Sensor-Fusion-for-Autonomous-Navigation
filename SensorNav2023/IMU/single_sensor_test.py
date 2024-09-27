@@ -12,7 +12,6 @@ def init_imu() -> LSM6DSOX:
     imu.gyro_data_rate = Rate.RATE_1_66K_HZ
     return imu
 
-
 if __name__ == "__main__":
     imu = init_imu()
 

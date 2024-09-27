@@ -9,6 +9,7 @@
         * y - Residual (Difference between acutal measurment (from sensor) and predicted measurment)
         * S - Residual Covariance (Expected uncertainty of y) (4x4 matrix)
         * G - Organization of Gyroscope values  /*may need more info update later*/
+        * State - State of the system
 
 ************************************************************************************* '''
 
@@ -16,19 +17,15 @@ import numpy as np
 from SensorFusion.Quaternion import Quaternion
 from SensorFusion.Vector import Vector
 
-class QuaternionKalmanFilter:
+class KalmanFilter:
     def __init__(self, initial_state):
-        # State estimate, quaternion
         self.state = initial_state
-        
-        # Initial covariance matrix
-        self.P = np.eye(4) * 0.1
-        
-        # Process noise covariance
-        self.Q = np.eye(4) * 0.01
-        
-        # Measurement noise covariance
-        self.R = np.eye(9) * 0.1
+
+        self.P = np.eye(7) * 0.1
+
+        self.Q = np.eye(7) * 0.01
+
+        self.R = np.eye(12) * 0.1
         
     def predict(self, omega, dt):
         omega_quat = Quaternion.from_angular_velocity(omega, dt)
