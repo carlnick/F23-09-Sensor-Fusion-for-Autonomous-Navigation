@@ -218,12 +218,57 @@ class Quaternion:
         wq = Quaternion(0, omega.x * dt/2, omega.y * dt/2, omega.z * dt/2)
         return wq
 
-    def multiply(self, other):
-        q0 = self.q0 * other.q0 - self.q1 * other.q1 - self.q2 * other.q2 - self.q3 * other.q3
-        q1 = self.q0 * other.q1 + self.q1 * other.q0 + self.q2 * other.q3 - self.q3 * other.q2
-        q2 = self.q0 * other.q2 - self.q1 * other.q3 + self.q2 * other.q0 + self.q3 * other.q1
-        q3 = self.q0 * other.q3 + self.q1 * other.q2 - self.q2 * other.q1 + self.q3 * other.q0
-        return Quaternion(q0, q1, q2, q3)
+    @staticmethod
+    def multiply(q1, q2):
+        w1, x1, y1, z1 = q1
+        w2, x2, y2, z2 = q2
+
+        w = w1*w2 - x1*x2 - y1*y2 - z1*z2
+        x = w1*x2 + x1*w2 + y1*z2 - z1*y2
+        y = w1*y2 + y1*w2 + z1*x2 - x1*z2
+        z = w1*z2 + z1*w2 + x1*y2 - y1*x2
+        return np.array([w, x, y, z])
+
 
     def to_array(self):
         return np.array([self.q0, self.q1, self.q2, self.q3])
+
+    # Account for Magnetic Declanation
+    @staticmethod
+    def quaternion_from_declanation(declination_deg):
+        declination_rad = np.radians(declination_deg)
+        half_angle = declination_rad/2
+
+        w = np.cos(half_angle)
+        z = np.sin(half_angle)
+
+        return np.array([w, 0, 0, z])
+    
+    @staticmethod
+    def rotationMatrix_from_quaternion(q):
+        # Get rotation matrix from quaternion
+        # Extract values form Quaternion
+        q0 = q[0]
+        q1 = q[1]
+        q2 = q[2]
+        q3 = q[3]
+
+        # First row of the rotation matrix
+        r00 = 2 * (q0 * q0 + q1 * q1) - 1
+        r01 = 2 * (q1 * q2 - q0 * q3) 
+        r02 = 2 * (q1 * q3 + q0 * q2)
+
+        # Second row of the rotation matrix
+        r10 = 2 * (q1 * q2 + q0 * q3)
+        r11 = 2 * (q0 * q0 + q2 * q2) - 1
+        r12 = 2 * (q2 * q3 - q0 * q1)
+
+        # Third row of the rotation matrix
+        r20 = 2 * (q1 * q3 - q0 * q2)
+        r21 = 2 * (q2 * q3 + q0 * q1)
+        r22 = 2 * (q0 * q0 + q3 * q3) - 1
+
+        # Rotation Matrix
+        rotation_matrix = np.array ([[r00, r01, r02], [r10, r11, r12], [r20, r21, r22]])
+        return rotation_matrix
+

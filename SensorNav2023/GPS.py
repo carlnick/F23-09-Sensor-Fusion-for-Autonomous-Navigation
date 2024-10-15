@@ -49,8 +49,8 @@ class GPS:
         # get GPS fix
         self._get_fix()
 
-        # get initial GPS position
-        self._get_initial_position()
+        # get GPS position
+        self._get_position()
 
     def _get_fix(self) -> bool:
         """
@@ -72,6 +72,8 @@ class GPS:
             attempt_count += 1
 
         return attempt_count < GPS_FIX_ATTEMPT_LIMIT
+
+        #return self.GPS.has_fix
 
     def get_position_meters(self):
         """
@@ -96,10 +98,40 @@ class GPS:
 
         return x_difference_mtrs, y_difference_mtrs, z_difference_mtrs, dist_mtrs, azimuth
 
-    def _get_initial_position(self):
-        self._get_fix()
-        self.position_degrees = [self.GPS.latitude, self.GPS.longitude, self.GPS.altitude_m]
-        return self.position_degrees
+    def _get_position(self):
+        if (not self._get_fix()):
+            return None
+        else:
+            self.position_degrees = [self.GPS.latitude, self.GPS.longitude, self.GPS.altitude_m]
+            return self.position_degrees
 
     def _deg_to_m(self, deg):
         return (2.0 * pi * EARTH_RADIUS_METERS * deg) / 360.0
+
+    @staticmethod
+    def change_in_position_between_two_points(lat_1, lon_1, lat_2, lon_2):
+        '''Get distance between two GPS points'''
+        
+        lat_1_rad = np.deg2rad(lat_1)
+        lon_1_rad = np.deg2rad(lon_1)
+        lat_2_rad = np.deg2rad(lat_2)
+        lon_2_rad = np.deg2rad(lon_2)
+
+        delta_lat = lat_2_rad - lat_1_rad
+        delta_lon = lon_2_rad - lon_1_rad
+
+        a = np.sin(delta_lat / 2.0)**2 + np.cos(lat_1_rad) * np.cos(lat_2_rad) * np.sin(delta_lon / 2.0)**2
+        c = 2 * np.arctan2(np.sqrt(a), np.sqrt(1 - a))
+
+        return c * EARTH_RADIUS_METERS
+
+
+    @staticmethod
+    def latToMtrs(latitude):
+        return change_in_position_between_two_points(latitude, 0.0, 0.0, 0.0)
+
+    @staticmethod
+    def lonToMtrs(longitude):
+        return change_in_position_between_two_points(0.0, longitude, 0.0, 0.0)
+
+        
