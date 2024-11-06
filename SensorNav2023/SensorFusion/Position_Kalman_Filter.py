@@ -1,65 +1,125 @@
-''' *************************************************************************************
-    Variable Definitions
-        * K - Kalman Gain (Detirmines how much the predicted state should be adjusted based on the incoming sensor measurments. Weighs the predicted state against the measurment to detirmine the updated estimate) (4x4 matrix)
-        * F - State transition matrix (Describes state vectors changes from one step to the next. Models relationships between the different state variable over time) (4x4 matrix)
-        * P - State covariance matrix (Uncertainty in the state matrix. Each element represents uncertainty on the variable and uncertainties in correlation to other variables) (4x4 matrix)
-        * Q - Process noise covariance matrix (Models the noise in the process of the filter itself which comes from modeling errors and approximations) (4x4 matrix) 
-        * R - Measurement noise covariance matrix (Uncertainty of sensor measurements) (9x9 matrix)
-        * H - Measurement matrix (Relationship between the state vector and measurment vector. Maps the state space and indicates which aspects can be observed.) (9x4 matrix (or maybe 4x9?))
-        * y - Residual (Difference between acutal measurment (from sensor) and predicted measurment)
-        * S - Residual Covariance (Expected uncertainty of y) (4x4 matrix)
-        * G - Organization of Gyroscope values  /*may need more info update later*/
-        * State - State of the system
-
-************************************************************************************* '''
 
 import numpy as np
 from SensorFusion.Quaternion import Quaternion
 from SensorFusion.Vector import Vector
 
 class Position_Kalman_Filter:
-    def __init__(self, initial_position, acc_variance, pos_variance):
-        # State estimate
-        self.X = 0
-        
-        # Initial state error covariance matrix
-        self.P = 1.0
+    def __init__(self, initial_position, initial_velocity, gps_var, acc_var, current_time):
+        # State Estimate
+        self.X = np.array([[np.float64(initial_position)], [np.float64(initial_velocity)]])
 
-        # Initial predicted state error covariance matrix
-        self.P_minus = 1.0
+        # Initial State Error Covariace Matrix
+        self.P = np.identity(2)
 
-        self.K = np.array([[1], [1]])
-        
+        # Initial Observation Matrix
+        self.H = np.identity(2)
+
         # Process noise covariance matrix - Accelerometer
-        self.Q = acc_variance
-        
+        self.Q = np.array([[0.0001, 0], [0, 0.0001]])
+
         # Measurement noise covariance matrix - GPS
-        self.R = pos_variance
+        self.R = np.array([[gps_var, 0], [0, acc_var]])
+
+        # Initial Kalman Gain
+        self.K = None
+
+        # Initial Measurment Vector
+        self.z = None
+
+        # Initial Dynamics Model
+        self.A = None
+
+        # Initial Input Matrix
+        self.B = None
+
+        # Initial Input Vector
+        self.u = None
 
         # Identity Matrix
-        self.I = 1
+        self.I = np.identity(2)
 
-        # Initial measurement matrix
-        self.H = np.array([0, 1])
+        # Current Time
+        self.current_time = current_time
+        
+        # Previous Time
+        self.previous_time = None
 
-    def estimate_state(self, measurement_vector, GPS_used):
-        if (GPS_used):
-            self.H = np.array([1, 0])
+        # Delta T
+        self.delta_t = None
+
+
+    def predict(self, acc_reading, timestamp):
+        # If there is no previous time set delta_t to 1e-5
+        if self.previous_time is None:
+            self.delta_t = 1e-5
         else:
-            self.H = np.array([0, 1])
+            # Delta_t is the change in time
+            self.delta_t = timestamp - self.previous_time
 
-        # Predict the state error covariance
-        self.P_minus = self.P + self.Q
+        # Dynamics Model - Kinematics
+        self.A = np.array([[1.0, self.delta_t], [0.0, 1.0]])
 
-        # Calculate the Kalman Gain
-        self.K = np.array([[self.P_minus], [self.P_minus]]) + self.H.T @ np.linalg.inv(self.H * self.P_minus * self.H.T + self.R)
+        # Input Matrix - Kinematics
+        self.B = np.array([[0.5*self.delta_t**2], [self.delta_t]])
 
-        # Update the State Estimate
-        self.X = self.X + self.K @ (measurement_vector - self.H * self.X)
+        # Input Vector - Accelerometer Readings
+        self.u = np.array([[acc_reading]])
 
-        # Update the State Error Covariance 
-        self.P = (self.I - self.K @ self.H) @ (self.P_minus)
+        # Calculate prediction for State - X
+        self.X = np.add(np.matmul(self.A, self.X), np.matmul(self.B, self.u))
 
-        return self.X
+        # Calculate prediction for State Error Covariance - P
+        tmp = np.matmul(self.A, self.P)
+        A_T = np.transpose(self.A)
+        self.P = np.add(np.matmul(tmp, A_T), self.Q)
+
+        # Update timestamps
+        self.previous_time = self.current_time
+        self.current_time = timestamp
+
+    def update(self, gps_pos, acceleration, timestamp):
+        # If there is no previous time set delta_t to 1e-5
+        if self.previous_time is None:
+            self.delta_t = 1e-5
+        else:
+            # Delta_t is the change in time
+            self.delta_t = timestamp - self.previous_time
+
+        # Measurment Vector
+        self.z = np.array([[gps_pos], [acceleration]])
+
+        # Update Observation Matrix
+        self.H = np.array([[1, 0], [0, 1/self.delta_t]])
+
+        # Calculate Kalman Gain - K
+        H_T = np.transpose(self.H)
+        tmp_K = np.add(np.matmul(self.H, np.matmul(self.P, H_T)), self.R)
+        tmp_K_inv = np.linalg.inv(tmp_K)
+
+        self.K = np.matmul(self.P, np.matmul(H_T, tmp_K_inv))
+
+        # Calculate Updated State
+        tmp_X = np.subtract(self.z, np.matmul(self.H, self.X))
+        self.X = np.add(self.X, np.matmul(self.K, tmp_X))
+
+        # Calculate Updated State Error Covariance
+        tmp_P = np.subtract(self.I, np.matmul(self.K, self.H))
+        self.P = np.matmul(tmp_P, self.P)
+
+        # Update timestamps
+        self.previous_time = self.current_time
+        self.current_time = timestamp
+
+        print("UPDATE", gps_pos)
+
+    # Return the State (Position)
+    def get_position(self):
+        return self.X[0, 0]
+
+
+        
+
+
+
 
 

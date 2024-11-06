@@ -128,10 +128,35 @@ class GPS:
 
     @staticmethod
     def latToMtrs(latitude):
-        return change_in_position_between_two_points(latitude, 0.0, 0.0, 0.0)
+        return GPS.change_in_position_between_two_points(latitude, 0.0, 0.0, 0.0)
 
     @staticmethod
-    def lonToMtrs(longitude):
-        return change_in_position_between_two_points(0.0, longitude, 0.0, 0.0)
+    def longToMtrs(longitude):
+        return GPS.change_in_position_between_two_points(0.0, longitude, 0.0, 0.0)
 
-        
+    @staticmethod
+    def mtrsToGPS(lat_distance, long_distance):
+        long_radius = long_distance / EARTH_RADIUS_METERS
+        lat_radius = lat_distance / EARTH_RADIUS_METERS
+
+        long_bearing = np.deg2rad(90.0)
+        lat_bearing = np.deg2rad(0.0)
+
+        lat1 = np.deg2rad(0.0)
+        lon1 = np.deg2rad(0.0)
+
+        new_lat_temp = np.arcsin(np.sin(lat1)*np.cos(long_radius) + np.cos(lat1)*np.sin(long_radius)*np.cos(long_bearing))
+
+        new_lon_temp = lon1 + np.arctan2(np.sin(long_bearing)*np.sin(long_radius)*np.cos(lat1), np.cos(long_radius) - (np.sin(lat1)*np.sin(new_lat_temp)))
+        new_lon_temp = np.mod((new_lon_temp + 3 * np.pi), (2 * np.pi)) - np.pi
+
+        new_lat = np.arcsin(np.sin(new_lat_temp)*np.cos(lat_radius) + np.cos(new_lat_temp) * np.sin(lat_radius) * np.cos(lat_bearing))
+
+        new_lon = new_lon_temp + np.arctan2(np.sin(lat_bearing)*np.sin(lat_radius)*np.cos(new_lat_temp), np.cos(lat_radius) - (np.sin(new_lat_temp)*np.sin(new_lat)))
+        new_lon = np.mod((new_lon + 3 * np.pi), (2 * np.pi)) - np.pi
+
+        return np.rad2deg(new_lat), np.rad2deg(new_lon)
+
+
+
+
