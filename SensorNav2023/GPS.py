@@ -8,6 +8,8 @@ import math
 import numpy as np
 
 EARTH_RADIUS_METERS = 6371000
+EARTH_EQUATOR_RADIUS_METERS = 6378137
+EARTH_POLAR_RADIUS_METERS = 6356752
 
 # GPS initialization commands
 GGA_RMC_COMMAND = b"PMTK314,0,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0*28\r\n"
@@ -67,7 +69,7 @@ class GPS:
         while ((not self.GPS.has_fix) and (attempt_count < GPS_FIX_ATTEMPT_LIMIT)):
             # if not, wait and check again
             print("GPS could not get a fix - attempting to retry")
-            time.sleep(0.1)
+            time.sleep(0.5)
             self.GPS.update()
             attempt_count += 1
 
@@ -136,8 +138,8 @@ class GPS:
 
     @staticmethod
     def mtrsToGPS(lat_distance, long_distance):
-        long_radius = long_distance / EARTH_RADIUS_METERS
-        lat_radius = lat_distance / EARTH_RADIUS_METERS
+        long_radius = long_distance / EARTH_EQUATOR_RADIUS_METERS
+        lat_radius = lat_distance / EARTH_POLAR_RADIUS_METERS
 
         long_bearing = np.deg2rad(90.0)
         lat_bearing = np.deg2rad(0.0)
@@ -154,6 +156,7 @@ class GPS:
 
         new_lon = new_lon_temp + np.arctan2(np.sin(lat_bearing)*np.sin(lat_radius)*np.cos(new_lat_temp), np.cos(lat_radius) - (np.sin(new_lat_temp)*np.sin(new_lat)))
         new_lon = np.mod((new_lon + 3 * np.pi), (2 * np.pi)) - np.pi
+        new_lon *= -1
 
         return np.rad2deg(new_lat), np.rad2deg(new_lon)
 

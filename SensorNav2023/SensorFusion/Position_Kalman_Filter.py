@@ -1,4 +1,3 @@
-
 import numpy as np
 from SensorFusion.Quaternion import Quaternion
 from SensorFusion.Vector import Vector
@@ -110,11 +109,15 @@ class Position_Kalman_Filter:
         self.previous_time = self.current_time
         self.current_time = timestamp
 
-        print("UPDATE", gps_pos)
+        #print("UPDATE POSITION", gps_pos)
 
     # Return the State (Position)
     def get_position(self):
         return self.X[0, 0]
+
+    def update_var(self, gps_var, acc_var):
+        self.R = np.array([[gps_var, 0], [0, acc_var]])
+
 
 
         
