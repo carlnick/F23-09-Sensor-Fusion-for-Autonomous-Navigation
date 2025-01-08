@@ -47,7 +47,7 @@ For more information on each hardware component, please see the following:
 - Hayden Craun - [@Survivalman2020](https://www.github.com/Survivalman2020)
 - Carl Nicklas - [@carlnick](https://www.github.com/carlnick)
 - Mert Kaner - [@mertkaner](https://www.github.com/mertkaner)
-- Marlin Spears - [@mlspears1228](https://www.github.com/mlspears1228)
+- Marlin Spears - [@marlingit](https://www.github.com/marlingit)
 
 ## Special Thanks
 
